@@ -159,7 +159,7 @@ def export_users_excel(request):
 
 @login_required
 def dashboard(request):
-    if not has_permission(request.user, 'dashboard'):
+    if not has_permission(request.user, 'dashboard', 'view'):
         return HttpResponse('Access Denied', status=403)
     return render(request, 'employee_app/dashboard.html')
 
@@ -167,18 +167,21 @@ def dashboard(request):
 
 
 
+
 @login_required
 def training(request):
-    if not has_permission(request.user, 'training'):
+    if not has_permission(request.user, 'training', 'view'):
         return HttpResponse('Access Denied', status=403)
     return render(request, 'employee_app/training.html')
 
 
+
 @login_required
 def projects(request):
-    if not has_permission(request.user, 'projects'):
+    if not has_permission(request.user, 'projects', 'view'):
         return HttpResponse('Access Denied', status=403)
     return render(request, 'employee_app/projects.html')
+
 
 
 @login_required
