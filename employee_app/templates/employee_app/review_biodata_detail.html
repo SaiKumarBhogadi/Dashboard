@@ -1,0 +1,224 @@
+{% extends 'employee_app/base.html' %}
+
+{% block page_title %}Review Biodata Request{% endblock %}
+
+{% block content %}
+<div class="content-area">
+  <div class="content-card" style="max-width:1100px;">
+    <div class="card-header">
+      <h2>{{ bio.full_name }}</h2>
+      <p class="card-subtitle">
+        Submitted: {{ bio.created_at|date:"d M Y" }} • ID: #{{ bio.id }} • 
+        <span class="status-badge {{ bio.status|lower }}">{{ bio.get_status_display }}</span>
+      </p>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" id="reviewForm">
+      {% csrf_token %}
+
+      <!-- PERSONAL DETAILS (read-only) -->
+      <div class="form-section">
+        <h3 class="section-title">Personal Details</h3>
+        <div class="form-row">
+          <div class="form-group"><label>Name</label><input value="{{ bio.full_name }}" readonly class="readonly"></div>
+          <div class="form-group"><label>Date of Birth</label><input value="{{ bio.dob|date:"d M Y"|default:"-" }}" readonly class="readonly"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Gender</label><input value="{{ bio.gender|default:"-" }}" readonly class="readonly"></div>
+          <div class="form-group"><label>Marital Status</label><input value="{{ bio.marital_status|default:"-" }}" readonly class="readonly"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Contact Number</label><input value="{{ bio.contact_number }}" readonly class="readonly"></div>
+          <div class="form-group"><label>Emergency Contact</label><input value="{{ bio.emergency_contact|default:"-" }}" readonly class="readonly"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Email</label><input value="{{ bio.personal_email }}" readonly class="readonly"></div>
+          <div class="form-group"><label>Address</label><input value="{{ bio.address|default:"-" }}" readonly class="readonly"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Aadhar No</label><input value="{{ bio.aadhar_no|default:"-" }}" readonly class="readonly"></div>
+          <div class="form-group"><label>PAN No</label><input value="{{ bio.pan_no|default:"-" }}" readonly class="readonly"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Bank Details</label><input value="{{ bio.bank_details|default:"-" }}" readonly class="readonly"></div>
+          <div class="form-group"><label>Fresher/Experience</label><input value="{{ bio.experience_type }}" readonly class="readonly"></div>
+        </div>
+      </div>
+
+      <!-- DOCUMENTS PREVIEW -->
+      <div class="form-section">
+        <h3 class="section-title">Uploaded Documents</h3>
+        <div class="doc-grid">
+          {% if bio.photo %}<div class="doc"><strong>Photo</strong><br><a href="{{ bio.photo.url }}" target="_blank">View Photo</a></div>{% endif %}
+          {% if bio.resume %}<div class="doc"><strong>Resume</strong><br><a href="{{ bio.resume.url }}" target="_blank">Download Resume</a></div>{% endif %}
+          {% if bio.aadhar_card %}<div class="doc"><strong>Aadhar Card</strong><br><a href="{{ bio.aadhar_card.url }}" target="_blank">View Aadhar</a></div>{% endif %}
+          {% if bio.pan_card %}<div class="doc"><strong>PAN Card</strong><br><a href="{{ bio.pan_card.url }}" target="_blank">View PAN</a></div>{% endif %}
+          {% if bio.ssc_marksheet %}<div class="doc"><strong>10th Marksheet</strong><br><a href="{{ bio.ssc_marksheet.url }}" target="_blank">View 10th</a></div>{% endif %}
+          {% if bio.sslc_marksheet %}<div class="doc"><strong>12th Marksheet</strong><br><a href="{{ bio.sslc_marksheet.url }}" target="_blank">View 12th</a></div>{% endif %}
+          {% if bio.ug_documents %}<div class="doc"><strong>UG Documents</strong><br><a href="{{ bio.ug_documents.url }}" target="_blank">Download UG Docs</a></div>{% endif %}
+        </div>
+      </div>
+
+      <!-- EDUCATION DETAILS -->
+      <div class="form-section">
+        <h3 class="section-title">Education Details</h3>
+        <div class="form-row">
+          <div class="form-group"><label>SSC School</label><input value="{{ bio.ssc_school }}" readonly class="readonly"></div>
+          <div class="form-group"><label>Year</label><input value="{{ bio.ssc_year }}" readonly class="readonly"></div>
+          <div class="form-group"><label>%/Grade</label><input value="{{ bio.ssc_grade }}" readonly class="readonly"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>SSLC School</label><input value="{{ bio.sslc_school }}" readonly class="readonly"></div>
+          <div class="form-group"><label>Year</label><input value="{{ bio.sslc_year }}" readonly class="readonly"></div>
+          <div class="form-group"><label>%/Grade</label><input value="{{ bio.sslc_grade }}" readonly class="readonly"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>UG Degree</label><input value="{{ bio.ug_degree }}" readonly class="readonly"></div>
+          <div class="form-group"><label>Institution</label><input value="{{ bio.ug_institution }}" readonly class="readonly"></div>
+          <div class="form-group"><label>Year</label><input value="{{ bio.ug_year }}" readonly class="readonly"></div>
+        </div>
+      </div>
+
+      <!-- WORK EXPERIENCE -->
+      <div class="form-section">
+        <h3 class="section-title">Work Experience</h3>
+        {% if bio.work_experience %}
+          {% for exp in bio.work_experience %}
+            <p><strong>{{ exp.employer }}</strong> - {{ exp.designation }} ({{ exp.duration }})</p>
+          {% endfor %}
+        {% else %}
+          <p>No previous experience (Fresher)</p>
+        {% endif %}
+      </div>
+
+      <!-- SKILLS & REFERENCES -->
+      <div class="form-section">
+        <h3 class="section-title">Skills & References</h3>
+        <div class="form-row">
+          <div class="form-group"><label>Technical Skills</label><input value="{{ bio.technical_skills }}" readonly class="readonly"></div>
+          <div class="form-group"><label>Soft Skills</label><input value="{{ bio.soft_skills|default:'-' }}" readonly class="readonly"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Reference Name</label><input value="{{ bio.reference_name|default:'-' }}" readonly class="readonly"></div>
+          <div class="form-group"><label>Contact</label><input value="{{ bio.reference_contact|default:'-' }}" readonly class="readonly"></div>
+        </div>
+      </div>
+
+      <!-- PROFESSIONAL DETAILS (HR fills) -->
+      <div class="form-section">
+        <h3 class="section-title">Professional Details (HR to Fill)</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Employee ID *</label>
+            <input name="employee_id" value="{{ bio.employee_id }}" placeholder="e.g., EMP-2025-156" required>
+          </div>
+          <div class="form-group">
+            <label>Official Email *</label>
+            <input name="official_email" type="email" value="{{ bio.official_email }}" placeholder="employee@stackly.com" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Designation *</label>
+            <select name="designation" required>
+              <option value="">Select</option>
+              <option {% if bio.designation == 'Junior Developer' %}selected{% endif %}>Junior Developer</option>
+              <option {% if bio.designation == 'Frontend Developer' %}selected{% endif %}>Frontend Developer</option>
+              <option {% if bio.designation == 'Full Stack Developer' %}selected{% endif %}>Full Stack Developer</option>
+              <option {% if bio.designation == 'QA Engineer' %}selected{% endif %}>QA Engineer</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Department *</label>
+            <select name="department" required>
+              <option value="">Select</option>
+              <option {% if bio.department == 'Software Development' %}selected{% endif %}>Software Development</option>
+              <option {% if bio.department == 'Training & Development' %}selected{% endif %}>Training & Development</option>
+              <option {% if bio.department == 'HR' %}selected{% endif %}>HR</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Date of Joining *</label>
+            <input type="date" name="doj" value="{{ bio.doj|date:'Y-m-d' }}" required>
+          </div>
+          <div class="form-group">
+            <label>Work Mode</label>
+            <select name="work_mode">
+              <option value="Remote" {% if bio.work_mode == 'Remote' %}selected{% endif %}>Remote</option>
+              <option value="Onsite" {% if bio.work_mode == 'Onsite' %}selected{% endif %}>Onsite</option>
+              <option value="Hybrid" {% if bio.work_mode == 'Hybrid' %}selected{% endif %}>Hybrid</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- REJECT REASON (Hidden initially) -->
+      <div class="form-section reject-reason" id="rejectReason" style="display:none;">
+        <h3 class="section-title" style="color:#991b1b;">Reason for Rejection *</h3>
+        <textarea name="reject_reason" placeholder="Please mention why this application is rejected..."  style="width:100%; height:120px; padding:12px; border-radius:8px; border:1px solid #ccc;"></textarea>
+      </div>
+
+      <!-- ACTION BUTTONS -->
+      <div class="form-actions" style="margin:40px 0; padding-top:30px; border-top:2px dashed #e2e8f0;">
+        <!-- Approve Button -->
+        <button type="submit" name="action" value="approve" id="approveBtn" class="btn btn-primary" style="background:#166534;color:white;padding:14px 40px;font-size:16px;">
+          Approve & Create Employee
+        </button>
+
+        <!-- Reject Button -->
+        <button type="button" id="rejectBtn" class="btn" style="background:#dc2626;color:white;padding:14px 40px;font-size:16px;">
+          Reject Application
+        </button>
+
+        <!-- Back Button -->
+        <a href="{% url 'employee_app:pending_requests' %}" class="btn btn-secondary" style="padding:14px 30px;">Back to List</a>
+      </div>
+
+      <!-- Hidden submit for reject -->
+      <button type="submit" name="action" value="reject" id="hiddenRejectSubmit" style="display:none;"></button>
+    </form>
+  </div>
+</div>
+
+<script>
+  const approveBtn = document.getElementById('approveBtn');
+  const rejectBtn = document.getElementById('rejectBtn');
+  const rejectReason = document.getElementById('rejectReason');
+  const hiddenRejectSubmit = document.getElementById('hiddenRejectSubmit');
+
+  rejectBtn.addEventListener('click', function() {
+    // Hide Approve button and Reject button
+    approveBtn.style.display = 'none';
+    rejectBtn.style.display = 'none';
+    // Show reason box
+    rejectReason.style.display = 'block';
+  });
+
+  // Add Confirm and Cancel buttons inside rejectReason
+  rejectReason.innerHTML += `
+    <div style="margin-top:20px; text-align:right;">
+      <button type="button" id="confirmReject" class="btn" style="background:#dc2626;color:white;padding:12px 30px;">Confirm Reject</button>
+      <button type="button" id="cancelReject" class="btn btn-secondary" style="padding:12px 30px; margin-left:10px;">Cancel</button>
+    </div>
+  `;
+
+  document.getElementById('confirmReject').addEventListener('click', function() {
+    const reason = document.querySelector('#rejectReason textarea').value.trim();
+    if (reason === '') {
+      alert('Please provide a reason for rejection.');
+      return;
+    }
+    hiddenRejectSubmit.click(); // Submit form with action=reject
+  });
+
+  document.getElementById('cancelReject').addEventListener('click', function() {
+    rejectReason.style.display = 'none';
+    approveBtn.style.display = 'inline-block';
+    rejectBtn.style.display = 'inline-block';
+    document.querySelector('#rejectReason textarea').value = '';
+  });
+</script>
+
+{% endblock %}

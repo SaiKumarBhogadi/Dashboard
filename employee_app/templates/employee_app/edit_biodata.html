@@ -1,0 +1,130 @@
+{% extends 'employee_app/base.html' %}
+
+{% block page_title %}Edit Employee Bio Data - {{ bio.full_name }}{% endblock %}
+
+{% block content %}
+<div class="content-area">
+  <div class="content-card" style="max-width:1100px;">
+    <div class="card-header">
+      <h2>Edit: {{ bio.full_name }}</h2>
+      <p class="card-subtitle">Employee ID: {{ bio.employee_id|default:"Not assigned" }} • Status: Approved</p>
+    </div>
+
+    <form method="POST">
+      {% csrf_token %}
+
+      <!-- Personal Details -->
+      <div class="form-section">
+        <h3 class="section-title">Personal Details</h3>
+        <div class="form-row">
+          <div class="form-group"><label>Name *</label><input name="full_name" value="{{ bio.full_name }}" required></div>
+          <div class="form-group"><label>Date of Birth</label><input name="dob" type="date" value="{{ bio.dob|date:'Y-m-d'|default:'' }}"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Gender</label>
+            <select name="gender">
+              <option value="">Select</option>
+              <option value="Male" {% if bio.gender == 'Male' %}selected{% endif %}>Male</option>
+              <option value="Female" {% if bio.gender == 'Female' %}selected{% endif %}>Female</option>
+              <option value="Non-binary" {% if bio.gender == 'Non-binary' %}selected{% endif %}>Non-binary</option>
+              <option value="Prefer not to say" {% if bio.gender == 'Prefer not to say' %}selected{% endif %}>Prefer not to say</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Marital Status</label>
+            <select name="marital_status">
+              <option value="">Select</option>
+              <option value="Single" {% if bio.marital_status == 'Single' %}selected{% endif %}>Single</option>
+              <option value="Married" {% if bio.marital_status == 'Married' %}selected{% endif %}>Married</option>
+              <option value="Divorced" {% if bio.marital_status == 'Divorced' %}selected{% endif %}>Divorced</option>
+              <option value="Widowed" {% if bio.marital_status == 'Widowed' %}selected{% endif %}>Widowed</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Contact Number *</label><input name="contact_number" value="{{ bio.contact_number }}" required></div>
+          <div class="form-group"><label>Emergency Contact</label><input name="emergency_contact" value="{{ bio.emergency_contact }}"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Personal Email *</label><input name="personal_email" type="email" value="{{ bio.personal_email }}" required></div>
+          <div class="form-group"><label>Address</label><input name="address" value="{{ bio.address }}"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Aadhar No</label><input name="aadhar_no" value="{{ bio.aadhar_no }}"></div>
+          <div class="form-group"><label>PAN No</label><input name="pan_no" value="{{ bio.pan_no }}"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Bank Details</label><input name="bank_details" value="{{ bio.bank_details }}"></div>
+          <div class="form-group"><label>Fresher/Experience *</label>
+            <select name="experience_type" required>
+              <option value="fresher" {% if bio.experience_type == 'fresher' %}selected{% endif %}>Fresher</option>
+              <option value="experienced" {% if bio.experience_type == 'experienced' %}selected{% endif %}>Experienced</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Professional Details -->
+      <div class="form-section">
+        <h3 class="section-title">Professional Details</h3>
+        <div class="form-row">
+          <div class="form-group"><label>Employee ID *</label><input name="employee_id" value="{{ bio.employee_id }}" required></div>
+          <div class="form-group"><label>Official Email *</label><input name="official_email" type="email" value="{{ bio.official_email }}" required></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Designation *</label>
+            <select name="designation" required>
+              <option value="">Select</option>
+              <option value="Junior Developer" {% if bio.designation == 'Junior Developer' %}selected{% endif %}>Junior Developer</option>
+              <option value="Frontend Developer" {% if bio.designation == 'Frontend Developer' %}selected{% endif %}>Frontend Developer</option>
+              <option value="Full Stack Developer" {% if bio.designation == 'Full Stack Developer' %}selected{% endif %}>Full Stack Developer</option>
+              <option value="QA Engineer" {% if bio.designation == 'QA Engineer' %}selected{% endif %}>QA Engineer</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Department *</label>
+            <select name="department" required>
+              <option value="">Select</option>
+              <option value="Software Development" {% if bio.department == 'Software Development' %}selected{% endif %}>Software Development</option>
+              <option value="Training & Development" {% if bio.department == 'Training & Development' %}selected{% endif %}>Training & Development</option>
+              <option value="HR" {% if bio.department == 'HR' %}selected{% endif %}>HR</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Date of Joining *</label><input type="date" name="doj" value="{{ bio.doj|date:'Y-m-d' }}" required></div>
+          <div class="form-group"><label>Work Mode</label>
+            <select name="work_mode">
+              <option value="">Select</option>
+              <option value="Remote" {% if bio.work_mode == 'Remote' %}selected{% endif %}>Remote</option>
+              <option value="Onsite" {% if bio.work_mode == 'Onsite' %}selected{% endif %}>Onsite</option>
+              <option value="Hybrid" {% if bio.work_mode == 'Hybrid' %}selected{% endif %}>Hybrid</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Skills -->
+      <div class="form-section">
+        <h3 class="section-title">Skills</h3>
+        <div class="form-row">
+          <div class="form-group"><label>Technical Skills *</label><input name="technical_skills" value="{{ bio.technical_skills }}" required></div>
+          <div class="form-group"><label>Soft Skills</label><input name="soft_skills" value="{{ bio.soft_skills }}"></div>
+        </div>
+      </div>
+
+      <!-- References -->
+      <div class="form-section">
+        <h3 class="section-title">References</h3>
+        <div class="form-row">
+          <div class="form-group"><label>Name</label><input name="reference_name" value="{{ bio.reference_name }}"></div>
+          <div class="form-group"><label>Contact Number</label><input name="reference_contact" value="{{ bio.reference_contact }}"></div>
+        </div>
+      </div>
+
+      <div class="form-actions" style="margin:60px 0; text-align:center;">
+        <button type="submit" class="btn btn-primary" style="padding:16px 60px; font-size:17px;">Save Changes</button>
+        <a href="{% url 'employee_app:view_biodata' bio.pk %}" class="btn btn-secondary" style="padding:16px 40px; margin-left:20px;">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

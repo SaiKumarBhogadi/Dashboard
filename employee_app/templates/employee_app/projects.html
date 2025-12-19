@@ -1,0 +1,857 @@
+{% extends 'employee_app/base.html' %}
+{% block page_title %}Projects{% endblock %}
+{% block content %}
+            <!-- Page Content -->
+            <div class="content-area">
+
+                <!-- Employees & Projects Table Section -->
+                <div class="content-card">
+                    <div class="card-header">
+                        <h2>Employee Project Assignments</h2>
+                        <p class="card-subtitle">View all employees and their project assignments with technologies</p>
+                    </div>
+
+                    <!-- Search and Filters -->
+                    <div class="list-controls">
+                        <input type="text" id="searchEmployees" placeholder="Search by employee name or ID..." class="search-input" onkeyup="searchEmployeesTable()">
+                        <select id="projectFilter" class="role-filter" onchange="filterByProject()">
+                            <option value="">All Projects</option>
+                            <option value="E-Commerce Platform">E-Commerce Platform</option>
+                            <option value="CRM Dashboard">CRM Dashboard</option>
+                            <option value="Mobile App - iOS">Mobile App - iOS</option>
+                            <option value="Data Analytics Platform">Data Analytics Platform</option>
+                        </select>
+                        <select id="technologyFilter" class="role-filter" onchange="filterByTechnology()">
+                            <option value="">All Technologies</option>
+                            <option value="Frontend">Frontend</option>
+                            <option value="Backend">Backend</option>
+                            <option value="Testing">Testing</option>
+                            <option value="AWS">AWS/DevOps</option>
+                            <option value="QA">QA</option>
+                        </select>
+                    </div>
+
+                    <!-- Employees Table -->
+                    <div class="table-container">
+                        <div class="table-wrapper">
+                        <table class="employees-all-table">
+                            <thead>
+                                <tr>
+                                    <th>Employee Name</th>
+                                    <th>Employee ID</th>
+                                    <th>Project</th>
+                                    <th>Technology</th>
+                                    <th>Scrum Master</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="employeesAllTableBody">
+                                <!-- Employee 1 - Assigned -->
+                                <tr data-employee-name="John Doe" data-employee-id="EMP-001" data-project="E-Commerce Platform" data-technology="Frontend">
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="user-avatar">JD</div>
+                                            <span>John Doe</span>
+                                        </div>
+                                    </td>
+                                    <td>EMP-001</td>
+                                    <td>
+                                        <span class="project-badge">E-Commerce Platform</span>
+                                    </td>
+                                    <td><span class="role-badge frontend">Frontend</span></td>
+                                    <td>Sarah Miller</td>
+                                    <td><span class="status-badge active">Active</span></td>
+                                    <td>
+                                        <button class="action-icon-btn" title="View">👁️</button>
+                                        <button class="action-icon-btn" title="Edit">✏️</button>
+                                    </td>
+                                </tr>
+
+                                <!-- Employee 2 - Assigned -->
+                                <tr data-employee-name="Sarah Smith" data-employee-id="EMP-002" data-project="E-Commerce Platform" data-technology="Backend">
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="user-avatar">SS</div>
+                                            <span>Sarah Smith</span>
+                                        </div>
+                                    </td>
+                                    <td>EMP-002</td>
+                                    <td>
+                                        <span class="project-badge">E-Commerce Platform</span>
+                                    </td>
+                                    <td><span class="role-badge backend">Backend</span></td>
+                                    <td>Sarah Miller</td>
+                                    <td><span class="status-badge active">Active</span></td>
+                                    <td>
+                                        <button class="action-icon-btn" title="View">👁️</button>
+                                        <button class="action-icon-btn" title="Edit">✏️</button>
+                                    </td>
+                                </tr>
+
+                                <!-- Employee 3 - Not Assigned -->
+                                <tr data-employee-name="Mike Johnson" data-employee-id="EMP-003" data-project="Not Assigned" data-technology="Not Assigned">
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="user-avatar">MJ</div>
+                                            <span>Mike Johnson</span>
+                                        </div>
+                                    </td>
+                                    <td>EMP-003</td>
+                                    <td>
+                                        <span class="project-badge unassigned">Not Assigned</span>
+                                    </td>
+                                    <td><span class="role-badge">Unassigned</span></td>
+                                    <td>-</td>
+                                    <td><span class="status-badge inactive">Inactive</span></td>
+                                    <td>
+                                        <button class="action-icon-btn" title="View">👁️</button>
+                                        <button class="action-icon-btn" title="Assign">➕</button>
+                                    </td>
+                                </tr>
+
+                                <!-- Employee 4 - Assigned -->
+                                <tr data-employee-name="Emma Wilson" data-employee-id="EMP-004" data-project="CRM Dashboard" data-technology="AWS">
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="user-avatar">EW</div>
+                                            <span>Emma Wilson</span>
+                                        </div>
+                                    </td>
+                                    <td>EMP-004</td>
+                                    <td>
+                                        <span class="project-badge">CRM Dashboard</span>
+                                    </td>
+                                    <td><span class="role-badge aws">AWS/DevOps</span></td>
+                                    <td>John Doe</td>
+                                    <td><span class="status-badge active">Active</span></td>
+                                    <td>
+                                        <button class="action-icon-btn" title="View">👁️</button>
+                                        <button class="action-icon-btn" title="Edit">✏️</button>
+                                    </td>
+                                </tr>
+
+                                <!-- Employee 5 - Assigned -->
+                                <tr data-employee-name="Alex Chen" data-employee-id="EMP-005" data-project="E-Commerce Platform" data-technology="Frontend">
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="user-avatar">AC</div>
+                                            <span>Alex Chen</span>
+                                        </div>
+                                    </td>
+                                    <td>EMP-005</td>
+                                    <td>
+                                        <span class="project-badge">E-Commerce Platform</span>
+                                    </td>
+                                    <td><span class="role-badge frontend">Frontend</span></td>
+                                    <td>Sarah Miller</td>
+                                    <td><span class="status-badge active">Active</span></td>
+                                    <td>
+                                        <button class="action-icon-btn" title="View">👁️</button>
+                                        <button class="action-icon-btn" title="Edit">✏️</button>
+                                    </td>
+                                </tr>
+
+                                <!-- Employee 6 - Assigned -->
+                                <tr data-employee-name="Lisa Park" data-employee-id="EMP-006" data-project="Mobile App - iOS" data-technology="Testing">
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="user-avatar">LP</div>
+                                            <span>Lisa Park</span>
+                                        </div>
+                                    </td>
+                                    <td>EMP-006</td>
+                                    <td>
+                                        <span class="project-badge">Mobile App - iOS</span>
+                                    </td>
+                                    <td><span class="role-badge testing">Testing</span></td>
+                                    <td>Sarah Miller</td>
+                                    <td><span class="status-badge active">Active</span></td>
+                                    <td>
+                                        <button class="action-icon-btn" title="View">👁️</button>
+                                        <button class="action-icon-btn" title="Edit">✏️</button>
+                                    </td>
+                                </tr>
+
+                                <!-- Employee 7 - Not Assigned -->
+                                <tr data-employee-name="Rachel Green" data-employee-id="EMP-007" data-project="Not Assigned" data-technology="Not Assigned">
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="user-avatar">RG</div>
+                                            <span>Rachel Green</span>
+                                        </div>
+                                    </td>
+                                    <td>EMP-007</td>
+                                    <td>
+                                        <span class="project-badge unassigned">Not Assigned</span>
+                                    </td>
+                                    <td><span class="role-badge">Unassigned</span></td>
+                                    <td>-</td>
+                                    <td><span class="status-badge inactive">Inactive</span></td>
+                                    <td>
+                                        <button class="action-icon-btn" title="View">👁️</button>
+                                        <button class="action-icon-btn" title="Assign">➕</button>
+                                    </td>
+                                </tr>
+
+                                <!-- Employee 8 - Assigned -->
+                                <tr data-employee-name="Tom Brady" data-employee-id="EMP-008" data-project="Data Analytics Platform" data-technology="Backend">
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="user-avatar">TB</div>
+                                            <span>Tom Brady</span>
+                                        </div>
+                                    </td>
+                                    <td>EMP-008</td>
+                                    <td>
+                                        <span class="project-badge">Data Analytics Platform</span>
+                                    </td>
+                                    <td><span class="role-badge backend">Backend</span></td>
+                                    <td>Alex Thompson</td>
+                                    <td><span class="status-badge active">Active</span></td>
+                                    <td>
+                                        <button class="action-icon-btn" title="View">👁️</button>
+                                        <button class="action-icon-btn" title="Edit">✏️</button>
+                                    </td>
+                                </tr>
+
+                                <!-- Employee 9 - Assigned -->
+                                <tr data-employee-name="Nina Patel" data-employee-id="EMP-009" data-project="CRM Dashboard" data-technology="Frontend">
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="user-avatar">NP</div>
+                                            <span>Nina Patel</span>
+                                        </div>
+                                    </td>
+                                    <td>EMP-009</td>
+                                    <td>
+                                        <span class="project-badge">CRM Dashboard</span>
+                                    </td>
+                                    <td><span class="role-badge frontend">Frontend</span></td>
+                                    <td>John Doe</td>
+                                    <td><span class="status-badge active">Active</span></td>
+                                    <td>
+                                        <button class="action-icon-btn" title="View">👁️</button>
+                                        <button class="action-icon-btn" title="Edit">✏️</button>
+                                    </td>
+                                </tr>
+
+                                <!-- Employee 10 - Assigned -->
+                                <tr data-employee-name="Chris Lee" data-employee-id="EMP-010" data-project="E-Commerce Platform" data-technology="Testing">
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="user-avatar">CL</div>
+                                            <span>Chris Lee</span>
+                                        </div>
+                                    </td>
+                                    <td>EMP-010</td>
+                                    <td>
+                                        <span class="project-badge">E-Commerce Platform</span>
+                                    </td>
+                                    <td><span class="role-badge testing">Testing</span></td>
+                                    <td>Sarah Miller</td>
+                                    <td><span class="status-badge active">Active</span></td>
+                                    <td>
+                                        <button class="action-icon-btn" title="View">👁️</button>
+                                        <button class="action-icon-btn" title="Edit">✏️</button>
+                                    </td>
+                                </tr>
+
+                                <!-- Employee 11 -->
+                                <tr data-employee-name="David Kumar" data-employee-id="EMP-011" data-project="Not Assigned" data-technology="Not Assigned">
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="user-avatar">DK</div>
+                                            <span>David Kumar</span>
+                                        </div>
+                                    </td>
+                                    <td>EMP-011</td>
+                                    <td>
+                                        <span class="project-badge unassigned">Not Assigned</span>
+                                    </td>
+                                    <td><span class="role-badge">Unassigned</span></td>
+                                    <td>-</td>
+                                    <td><span class="status-badge inactive">Inactive</span></td>
+                                    <td>
+                                        <button class="action-icon-btn" title="View">👁️</button>
+                                        <button class="action-icon-btn" title="Assign">➕</button>
+                                    </td>
+                                </tr>
+
+                                <!-- Employee 12 -->
+                                <tr data-employee-name="Emily Brown" data-employee-id="EMP-012" data-project="Mobile App - iOS" data-technology="Frontend">
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="user-avatar">EB</div>
+                                            <span>Emily Brown</span>
+                                        </div>
+                                    </td>
+                                    <td>EMP-012</td>
+                                    <td>
+                                        <span class="project-badge">Mobile App - iOS</span>
+                                    </td>
+                                    <td><span class="role-badge frontend">Frontend</span></td>
+                                    <td>Sarah Miller</td>
+                                    <td><span class="status-badge active">Active</span></td>
+                                    <td>
+                                        <button class="action-icon-btn" title="View">👁️</button>
+                                        <button class="action-icon-btn" title="Edit">✏️</button>
+                                    </td>
+                                </tr>
+
+                                <!-- Employee 13 -->
+                                <tr data-employee-name="Michael Wilson" data-employee-id="EMP-013" data-project="CRM Dashboard" data-technology="Backend">
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="user-avatar">MW</div>
+                                            <span>Michael Wilson</span>
+                                        </div>
+                                    </td>
+                                    <td>EMP-013</td>
+                                    <td>
+                                        <span class="project-badge">CRM Dashboard</span>
+                                    </td>
+                                    <td><span class="role-badge backend">Backend</span></td>
+                                    <td>John Doe</td>
+                                    <td><span class="status-badge active">Active</span></td>
+                                    <td>
+                                        <button class="action-icon-btn" title="View">👁️</button>
+                                        <button class="action-icon-btn" title="Edit">✏️</button>
+                                    </td>
+                                </tr>
+
+                                <!-- Employee 14 -->
+                                <tr data-employee-name="Sophie Turner" data-employee-id="EMP-014" data-project="Data Analytics Platform" data-technology="Frontend">
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="user-avatar">ST</div>
+                                            <span>Sophie Turner</span>
+                                        </div>
+                                    </td>
+                                    <td>EMP-014</td>
+                                    <td>
+                                        <span class="project-badge">Data Analytics Platform</span>
+                                    </td>
+                                    <td><span class="role-badge frontend">Frontend</span></td>
+                                    <td>Alex Thompson</td>
+                                    <td><span class="status-badge active">Active</span></td>
+                                    <td>
+                                        <button class="action-icon-btn" title="View">👁️</button>
+                                        <button class="action-icon-btn" title="Edit">✏️</button>
+                                    </td>
+                                </tr>
+
+                                <!-- Employee 15 -->
+                                <tr data-employee-name="James Anderson" data-employee-id="EMP-015" data-project="E-Commerce Platform" data-technology="Backend">
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="user-avatar">JA</div>
+                                            <span>James Anderson</span>
+                                        </div>
+                                    </td>
+                                    <td>EMP-015</td>
+                                    <td>
+                                        <span class="project-badge">E-Commerce Platform</span>
+                                    </td>
+                                    <td><span class="role-badge backend">Backend</span></td>
+                                    <td>Sarah Miller</td>
+                                    <td><span class="status-badge active">Active</span></td>
+                                    <td>
+                                        <button class="action-icon-btn" title="View">👁️</button>
+                                        <button class="action-icon-btn" title="Edit">✏️</button>
+                                    </td>
+                                </tr>
+
+                                <!-- Employee 16 -->
+                                <tr data-employee-name="Olivia Martinez" data-employee-id="EMP-016" data-project="Not Assigned" data-technology="Not Assigned">
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="user-avatar">OM</div>
+                                            <span>Olivia Martinez</span>
+                                        </div>
+                                    </td>
+                                    <td>EMP-016</td>
+                                    <td>
+                                        <span class="project-badge unassigned">Not Assigned</span>
+                                    </td>
+                                    <td><span class="role-badge">Unassigned</span></td>
+                                    <td>-</td>
+                                    <td><span class="status-badge inactive">Inactive</span></td>
+                                    <td>
+                                        <button class="action-icon-btn" title="View">👁️</button>
+                                        <button class="action-icon-btn" title="Assign">➕</button>
+                                    </td>
+                                </tr>
+
+                                <!-- Employee 17 -->
+                                <tr data-employee-name="Kevin White" data-employee-id="EMP-017" data-project="Mobile App - iOS" data-technology="Backend">
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="user-avatar">KW</div>
+                                            <span>Kevin White</span>
+                                        </div>
+                                    </td>
+                                    <td>EMP-017</td>
+                                    <td>
+                                        <span class="project-badge">Mobile App - iOS</span>
+                                    </td>
+                                    <td><span class="role-badge backend">Backend</span></td>
+                                    <td>Sarah Miller</td>
+                                    <td><span class="status-badge active">Active</span></td>
+                                    <td>
+                                        <button class="action-icon-btn" title="View">👁️</button>
+                                        <button class="action-icon-btn" title="Edit">✏️</button>
+                                    </td>
+                                </tr>
+
+                                <!-- Employee 18 -->
+                                <tr data-employee-name="Jessica Taylor" data-employee-id="EMP-018" data-project="CRM Dashboard" data-technology="QA">
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="user-avatar">JT</div>
+                                            <span>Jessica Taylor</span>
+                                        </div>
+                                    </td>
+                                    <td>EMP-018</td>
+                                    <td>
+                                        <span class="project-badge">CRM Dashboard</span>
+                                    </td>
+                                    <td><span class="role-badge qa">QA</span></td>
+                                    <td>John Doe</td>
+                                    <td><span class="status-badge active">Active</span></td>
+                                    <td>
+                                        <button class="action-icon-btn" title="View">👁️</button>
+                                        <button class="action-icon-btn" title="Edit">✏️</button>
+                                    </td>
+                                </tr>
+
+                                <!-- Employee 19 -->
+                                <tr data-employee-name="Daniel Garcia" data-employee-id="EMP-019" data-project="Data Analytics Platform" data-technology="AWS">
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="user-avatar">DG</div>
+                                            <span>Daniel Garcia</span>
+                                        </div>
+                                    </td>
+                                    <td>EMP-019</td>
+                                    <td>
+                                        <span class="project-badge">Data Analytics Platform</span>
+                                    </td>
+                                    <td><span class="role-badge aws">AWS/DevOps</span></td>
+                                    <td>Alex Thompson</td>
+                                    <td><span class="status-badge active">Active</span></td>
+                                    <td>
+                                        <button class="action-icon-btn" title="View">👁️</button>
+                                        <button class="action-icon-btn" title="Edit">✏️</button>
+                                    </td>
+                                </tr>
+
+                                <!-- Employee 20 -->
+                                <tr data-employee-name="Amanda Lewis" data-employee-id="EMP-020" data-project="E-Commerce Platform" data-technology="QA">
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="user-avatar">AL</div>
+                                            <span>Amanda Lewis</span>
+                                        </div>
+                                    </td>
+                                    <td>EMP-020</td>
+                                    <td>
+                                        <span class="project-badge">E-Commerce Platform</span>
+                                    </td>
+                                    <td><span class="role-badge qa">QA</span></td>
+                                    <td>Sarah Miller</td>
+                                    <td><span class="status-badge active">Active</span></td>
+                                    <td>
+                                        <button class="action-icon-btn" title="View">👁️</button>
+                                        <button class="action-icon-btn" title="Edit">✏️</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        </div>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="table-pagination">
+                        <button class="pagination-btn" onclick="previousPageEmployees()">← Previous</button>
+                        <span class="pagination-info"><span class="current-page">1</span> / <span class="total-pages">1</span></span>
+                        <button class="pagination-btn" onclick="nextPageEmployees()">Next →</button>
+                    </div>
+
+                    <div class="export-buttons" style="margin-top: 25px; text-align: right;">
+                    <button class="btn btn-excel" style="
+                        padding: 10px 18px;
+                        background-color: #2e7d32;
+                        color: white;
+                        border: none;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        margin-right: 10px;
+                        margin-bottom:5px;">📄 Export Excel</button>
+
+                    <button class="btn btn-pdf" style="
+                        padding: 10px 18px;
+                        background-color: #c62828;
+                        color: white;
+                        border: none;
+                        border-radius: 6px;
+                        cursor: pointer;"> 📕 Export PDF</button>
+                </div>
+                </div>
+
+                <!-- Projects Card Views Section -->
+                <div style="margin-top: 40px;">
+                    <div class="content-card" style="margin-bottom: 0;">
+                        <div class="card-header">
+                            <h2>Projects Overview</h2>
+                            <p class="card-subtitle">View all projects and their team members</p>
+                        </div>
+                    </div>
+
+                    <!-- Projects Grid -->
+                    <div class="projects-grid" style="margin-top: 20px;">
+                        
+                        <!-- Project Card 1 -->
+                        <div class="project-card">
+                            <div class="project-header">
+                                <h3 class="project-title">E-Commerce Platform</h3>
+                                <span class="project-status active">Active</span>
+                            </div>
+                            
+                            <p class="project-desc">Build a full-stack e-commerce application with payment integration</p>
+                            
+                            <div class="project-details">
+                                <div class="detail-row">
+                                    <span class="detail-label">Project ID:</span>
+                                    <span class="detail-value">PRJ-2024-001</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Client:</span>
+                                    <span class="detail-value">TechRetail Inc</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Team Size:</span>
+                                    <span class="detail-value">5 Members</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Scrum Master:</span>
+                                    <span class="detail-value">Sarah Miller</span>
+                                </div>
+                            </div>
+
+                            <div class="team-section">
+                                <h4>Team Members</h4>
+                                <div class="team-avatars">
+                                    <div class="team-avatar" title="John Doe">JD</div>
+                                    <div class="team-avatar" title="Sarah Smith">SS</div>
+                                    <div class="team-avatar" title="Alex Chen">AC</div>
+                                    <div class="team-avatar" title="Chris Lee">CL</div>
+                                    <div class="team-avatar" title="Amanda Lewis">AL</div>
+                                </div>
+                            </div>
+
+                            <div class="progress-section">
+                                <div class="progress-header">
+                                    <span>Overall Progress</span>
+                                    <span class="progress-percent">60%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 60%;"></div>
+                                </div>
+                            </div>
+
+                            <div class="technology-section">
+                                <h4>Tech Stack</h4>
+                                <div class="tech-tags">
+                                    <span class="tech-tag">React JS</span>
+                                    <span class="tech-tag">Node.js</span>
+                                    <span class="tech-tag">MongoDB</span>
+                                </div>
+                            </div>
+
+                            <div class="project-actions">
+                                <button class="action-btn-project" onclick="viewProjectDetails('PRJ-2024-001')">View Details</button>
+                            </div>
+                        </div>
+
+                        <!-- Project Card 2 -->
+                        <div class="project-card">
+                            <div class="project-header">
+                                <h3 class="project-title">CRM Dashboard</h3>
+                                <span class="project-status completed">Completed</span>
+                            </div>
+                            
+                            <p class="project-desc">Customer relationship management dashboard with analytics</p>
+                            
+                            <div class="project-details">
+                                <div class="detail-row">
+                                    <span class="detail-label">Project ID:</span>
+                                    <span class="detail-value">PRJ-2024-002</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Client:</span>
+                                    <span class="detail-value">Global Solutions Ltd</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Team Size:</span>
+                                    <span class="detail-value">4 Members</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Scrum Master:</span>
+                                    <span class="detail-value">John Doe</span>
+                                </div>
+                            </div>
+
+                            <div class="team-section">
+                                <h4>Team Members</h4>
+                                <div class="team-avatars">
+                                    <div class="team-avatar" title="Emma Wilson">EW</div>
+                                    <div class="team-avatar" title="Nina Patel">NP</div>
+                                    <div class="team-avatar" title="Michael Wilson">MW</div>
+                                    <div class="team-avatar" title="Jessica Taylor">JT</div>
+                                </div>
+                            </div>
+
+                            <div class="progress-section">
+                                <div class="progress-header">
+                                    <span>Overall Progress</span>
+                                    <span class="progress-percent">100%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 100%;"></div>
+                                </div>
+                            </div>
+
+                            <div class="technology-section">
+                                <h4>Tech Stack</h4>
+                                <div class="tech-tags">
+                                    <span class="tech-tag">Vue.js</span>
+                                    <span class="tech-tag">Python</span>
+                                    <span class="tech-tag">PostgreSQL</span>
+                                </div>
+                            </div>
+
+                            <div class="project-actions">
+                                <button class="action-btn-project" onclick="viewProjectDetails('PRJ-2024-002')">View Details</button>
+                            </div>
+                        </div>
+
+                        <!-- Project Card 3 -->
+                        <div class="project-card">
+                            <div class="project-header">
+                                <h3 class="project-title">Mobile App - iOS</h3>
+                                <span class="project-status active">Active</span>
+                            </div>
+                            
+                            <p class="project-desc">Native iOS mobile application with real-time notifications</p>
+                            
+                            <div class="project-details">
+                                <div class="detail-row">
+                                    <span class="detail-label">Project ID:</span>
+                                    <span class="detail-value">PRJ-2024-003</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Client:</span>
+                                    <span class="detail-value">Mobile First Corp</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Team Size:</span>
+                                    <span class="detail-value">3 Members</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Scrum Master:</span>
+                                    <span class="detail-value">Sarah Miller</span>
+                                </div>
+                            </div>
+
+                            <div class="team-section">
+                                <h4>Team Members</h4>
+                                <div class="team-avatars">
+                                    <div class="team-avatar" title="Lisa Park">LP</div>
+                                    <div class="team-avatar" title="Emily Brown">EB</div>
+                                    <div class="team-avatar" title="Kevin White">KW</div>
+                                </div>
+                            </div>
+
+                            <div class="progress-section">
+                                <div class="progress-header">
+                                    <span>Overall Progress</span>
+                                    <span class="progress-percent">45%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 45%;"></div>
+                                </div>
+                            </div>
+
+                            <div class="technology-section">
+                                <h4>Tech Stack</h4>
+                                <div class="tech-tags">
+                                    <span class="tech-tag">Swift</span>
+                                    <span class="tech-tag">Firebase</span>
+                                    <span class="tech-tag">Xcode</span>
+                                </div>
+                            </div>
+
+                            <div class="project-actions">
+                                <button class="action-btn-project" onclick="viewProjectDetails('PRJ-2024-003')">View Details</button>
+                            </div>
+                        </div>
+
+                        <!-- Project Card 4 -->
+                        <div class="project-card">
+                            <div class="project-header">
+                                <h3 class="project-title">Data Analytics Platform</h3>
+                                <span class="project-status planning">Planning</span>
+                            </div>
+                            
+                            <p class="project-desc">Enterprise data analytics and visualization platform</p>
+                            
+                            <div class="project-details">
+                                <div class="detail-row">
+                                    <span class="detail-label">Project ID:</span>
+                                    <span class="detail-value">PRJ-2025-001</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Client:</span>
+                                    <span class="detail-value">DataTech Industries</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Team Size:</span>
+                                    <span class="detail-value">3 Members</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Scrum Master:</span>
+                                    <span class="detail-value">Alex Thompson</span>
+                                </div>
+                            </div>
+
+                            <div class="team-section">
+                                <h4>Team Members</h4>
+                                <div class="team-avatars">
+                                    <div class="team-avatar" title="Tom Brady">TB</div>
+                                    <div class="team-avatar" title="Sophie Turner">ST</div>
+                                    <div class="team-avatar" title="Daniel Garcia">DG</div>
+                                </div>
+                            </div>
+
+                            <div class="progress-section">
+                                <div class="progress-header">
+                                    <span>Overall Progress</span>
+                                    <span class="progress-percent">15%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 15%;"></div>
+                                </div>
+                            </div>
+
+                            <div class="technology-section">
+                                <h4>Tech Stack</h4>
+                                <div class="tech-tags">
+                                    <span class="tech-tag">Python</span>
+                                    <span class="tech-tag">Power BI</span>
+                                    <span class="tech-tag">PostgreSQL</span>
+                                </div>
+                            </div>
+
+                            <div class="project-actions">
+                                <button class="action-btn-project" onclick="viewProjectDetails('PRJ-2025-001')">View Details</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        
+    <script>
+        // ============================================================
+        // UI INTERACTION ONLY - NO BACKEND LOGIC
+        // ============================================================
+
+        const pageData = {
+            currentPage: 1,
+            perPage: 20
+        };
+
+        // Search employees (UI only)
+        function searchEmployeesTable() {
+            const searchTerm = document.getElementById('searchEmployees').value.toLowerCase();
+            const rows = document.querySelectorAll('#employeesAllTableBody tr');
+            
+            rows.forEach(row => {
+                const name = row.dataset.employeeName.toLowerCase();
+                const id = row.dataset.employeeId.toLowerCase();
+                const matches = name.includes(searchTerm) || id.includes(searchTerm);
+                row.style.display = matches ? '' : 'none';
+            });
+        }
+
+        // Filter by project (UI only)
+        function filterByProject() {
+            const selectedProject = document.getElementById('projectFilter').value;
+            const rows = document.querySelectorAll('#employeesAllTableBody tr');
+            
+            rows.forEach(row => {
+                const project = row.dataset.project;
+                const matches = selectedProject === '' || project === selectedProject;
+                row.style.display = matches ? '' : 'none';
+            });
+        }
+
+        // Filter by technology (UI only)
+        function filterByTechnology() {
+            const selectedTech = document.getElementById('technologyFilter').value;
+            const rows = document.querySelectorAll('#employeesAllTableBody tr');
+            
+            rows.forEach(row => {
+                const tech = row.dataset.technology;
+                const matches = selectedTech === '' || tech === selectedTech;
+                row.style.display = matches ? '' : 'none';
+            });
+        }
+
+        // Update pagination (UI only)
+        function updatePaginationEmployees() {
+            const visibleRows = Array.from(document.querySelectorAll('#employeesAllTableBody tr'))
+                .filter(row => row.style.display !== 'none');
+            const totalPages = Math.ceil(visibleRows.length / pageData.perPage);
+            const start = (pageData.currentPage - 1) * pageData.perPage;
+            const end = start + pageData.perPage;
+
+            visibleRows.forEach((row, index) => {
+                row.style.display = (index >= start && index < end) ? '' : 'none';
+            });
+
+            document.querySelector('.current-page').textContent = pageData.currentPage;
+            document.querySelector('.total-pages').textContent = totalPages || 1;
+        }
+
+        function nextPageEmployees() {
+            const visibleRows = Array.from(document.querySelectorAll('#employeesAllTableBody tr'))
+                .filter(row => row.style.display !== 'none');
+            const totalPages = Math.ceil(visibleRows.length / pageData.perPage);
+            if (pageData.currentPage < totalPages) {
+                pageData.currentPage++;
+                updatePaginationEmployees();
+            }
+        }
+
+        function previousPageEmployees() {
+            if (pageData.currentPage > 1) {
+                pageData.currentPage--;
+                updatePaginationEmployees();
+            }
+        }
+
+        // View project details (UI only - navigation)
+        function viewProjectDetails(projectId) {
+            window.location.href = `project-details.html?id=${projectId}`;
+        }
+
+       
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updatePaginationEmployees();
+        });
+    </script>
+    {% endblock %}

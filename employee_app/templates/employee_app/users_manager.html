@@ -1,0 +1,451 @@
+{% extends 'employee_app/base.html' %}
+{% block page_title %}User Management{% endblock %}
+{% block content %}
+
+
+<!-- Page Content -->
+<div class="content-area">
+
+    {% if messages %}
+    <div style="margin: 20px 0;">
+        {% for message in messages %}
+        <div style="padding: 15px; margin-bottom: 10px; border-radius: 5px; background: #d4edda; color: #155724;">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Create User Form Section -->
+    <div class="content-card">
+        <div class="card-header">
+            <h2>Create New User</h2>
+            <p class="card-subtitle">Add a new user to the STACKLY platform</p>
+        </div>
+
+        <form class="user-creation-form" method="POST" action="{% url 'employee_app:create_user' %}">
+            {% csrf_token %}
+
+            <!-- Personal Information Section -->
+            <div class="form-section">
+                <h3 class="section-title">Personal Information</h3>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="userName">Full Name *</label>
+                        <input type="text" id="userName" name="full_name"
+                               placeholder="e.g., John Smith" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="userEmail">Email Address *</label>
+                        <input type="email" id="userEmail" name="email"
+                               placeholder="user@stackly.com" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="userPhone">Phone Number</label>
+                        <input type="tel" id="userPhone" name="phone"
+                               placeholder="+1 (555) 000-0000">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="department">Department</label>
+                        <select id="department" name="department">
+                            <option value="">Select Department</option>
+                            <option value="software-dev">Software Development</option>
+                            <option value="hr">HR</option>
+                            <option value="finance">Finance</option>
+                            <option value="operations">Operations</option>
+                            <option value="training">Training & Development</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Information Section -->
+            <div class="form-section">
+                <h3 class="section-title">Account Information</h3>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="userRole">User Role *</label>
+                        <select id="userRole" name="role" required onchange="updatePermissionsUI()">
+                            <option value="">Select Role</option>
+                            <option value="admin">Admin</option>
+                            <option value="scrum_master">Scrum Master</option>
+                            <option value="trainer">Trainer</option>
+                            {% comment %} <option value="employee">Employee</option> {% endcomment %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="status">Status *</label>
+                        <select id="status" name="status" required>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="password">Temporary Password *</label>
+                        <div class="password-input-group">
+                            <input type="password" id="password" name="password"
+                                   placeholder="Min. 8 characters" required>
+                            <button type="button" class="toggle-password"
+                                    onclick="togglePasswordVisibility()">👁️</button>
+                        </div>
+                        <small class="help-text">
+                            User will be required to change password on first login
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Role-Based Permissions Section -->
+            {% comment %} <div class="form-section">
+                <h3 class="section-title">Module Permissions</h3>
+                <p class="permission-hint">Select modules this user can access</p>
+
+                <div class="permissions-container">
+
+                    <!-- Bio Data -->
+                    <div class="permission-module">
+                        <div class="module-header">
+                            <h4>👤 Employee Bio Data</h4>
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="module-toggle"
+                                       data-module="biodata"
+                                       onchange="toggleModulePermissionsUI(this)">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="module-permissions biodata-perms hidden">
+                            <div class="permission-checkbox">
+                                <input type="checkbox" name="biodata_permissions" value="view">
+                                <label>View Bio Data</label>
+                            </div>
+                            <div class="permission-checkbox">
+                                <input type="checkbox" name="biodata_permissions" value="edit">
+                                <label>Edit Bio Data</label>
+                            </div>
+                            <div class="permission-checkbox">
+                                <input type="checkbox" name="biodata_permissions" value="export">
+                                <label>Export Bio Data</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Training -->
+                    <div class="permission-module">
+                        <div class="module-header">
+                            <h4>📚 Training Details</h4>
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="module-toggle"
+                                       data-module="training"
+                                       onchange="toggleModulePermissionsUI(this)">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="module-permissions training-perms hidden">
+                            <div class="permission-checkbox">
+                                <input type="checkbox" name="training_permissions" value="view">
+                                <label>View Training</label>
+                            </div>
+                            <div class="permission-checkbox">
+                                <input type="checkbox" name="training_permissions" value="assign">
+                                <label>Assign Training</label>
+                            </div>
+                            <div class="permission-checkbox">
+                                <input type="checkbox" name="training_permissions" value="track">
+                                <label>Track Progress</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Projects -->
+                    <div class="permission-module">
+                        <div class="module-header">
+                            <h4>🎯 Projects</h4>
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="module-toggle"
+                                       data-module="projects"
+                                       onchange="toggleModulePermissionsUI(this)">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="module-permissions projects-perms hidden">
+                            <div class="permission-checkbox">
+                                <input type="checkbox" name="projects_permissions" value="view">
+                                <label>View Projects</label>
+                            </div>
+                            <div class="permission-checkbox">
+                                <input type="checkbox" name="projects_permissions" value="create">
+                                <label>Create Projects</label>
+                            </div>
+                            <div class="permission-checkbox">
+                                <input type="checkbox" name="projects_permissions" value="manage">
+                                <label>Manage Projects</label>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div> {% endcomment %}
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Create User</button>
+                <button type="reset" class="btn btn-secondary">Clear Form</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Users List Section -->
+    <div class="content-card" style="margin-top: 30px;">
+        <div class="card-header">
+            <h2>Active Users</h2>
+            <p class="card-subtitle">Manage existing users and their roles</p>
+        </div>
+
+        <!-- Search and Filter -->
+        <div class="list-controls">
+            <input type="text" id="searchUsers"
+                   placeholder="Search users by name or email..."
+                   class="search-input">
+
+            <select id="roleFilter" class="role-filter">
+                <option value="">All Roles</option>
+                <option value="admin">Admin</option>
+                <option value="scrum_master">Scrum Master</option>
+                <option value="trainer">Trainer</option>
+            </select>
+        </div>
+
+        <!-- Users Table -->
+        <div class="table-container">
+            <div class="table-wrapper">
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Department</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="usersTableBody">
+                        {% for user in users %}
+                        <tr>
+                            <td>
+                                <div class="user-cell">
+                                    <div class="user-avatar">
+                                        {{ user.full_name|slice:":2"|upper|default:"NA" }}
+                                    </div>
+                                    <span>{{ user.full_name|default:"-" }}</span>
+                                </div>
+                            </td>
+                            <td>{{ user.email }}</td>
+                            <td>
+                                <span class="role-badge {{ user.role }}">
+                                    {{ user.get_role_display }}
+                                </span>
+                            </td>
+                            <td>{{ user.get_department_display|default:"-" }}</td>
+                            <td>
+                                <span class="status-badge {{ user.status|lower }}">
+                                    {{ user.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="{% url 'employee_app:edit_user' user.id %}">
+                                        <button class="action-btn edit-btn">Edit</button>
+                                    </a>
+                                    <button class="action-btn delete-btn"
+                                            data-user-id="{{ user.id }}">Delete</button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" style="text-align:center;">No users found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-container">
+            <div class="pagination-info">
+                Showing <span id="startRecord">1</span> to
+                <span id="endRecord">10</span> of
+                <span id="totalRecords">0</span> users
+            </div>
+
+            <div class="pagination-controls">
+                <button class="pagination-btn" onclick="loadPreviousPage()">← Previous</button>
+                <div class="page-numbers" id="pageNumbers"></div>
+                <button class="pagination-btn" onclick="loadNextPage()">Next →</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+        // ============================================================
+        // UI INTERACTION FUNCTIONS ONLY
+        // ============================================================
+
+        // Toggle password visibility
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('password');
+            const toggleBtn = document.querySelector('.toggle-password');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleBtn.textContent = '👁️‍🗨️';
+            } else {
+                passwordInput.type = 'password';
+                toggleBtn.textContent = '👁️';
+            }
+        }
+
+        // Toggle module permissions visibility (UI only)
+        function toggleModulePermissionsUI(checkbox) {
+            const module = checkbox.getAttribute('data-module');
+            const permissionsDiv = document.querySelector(`.${module}-perms`);
+            
+            if (checkbox.checked) {
+                permissionsDiv.classList.remove('hidden');
+            } else {
+                permissionsDiv.classList.add('hidden');
+            }
+        }
+
+        // Update permissions UI based on role selection
+        function updatePermissionsUI() {
+            const role = document.getElementById('userRole').value;
+            const modules = document.querySelectorAll('.module-toggle');
+            
+            // Reset all toggles (UI only, Django will handle actual permissions)
+            modules.forEach(m => {
+                m.checked = false;
+                toggleModulePermissionsUI(m);
+            });
+
+            // Show suggested permissions based on role (UI only)
+            switch(role) {
+                case 'admin':
+                    document.querySelector('[data-module="biodata"]').checked = true;
+                    document.querySelector('[data-module="training"]').checked = true;
+                    document.querySelector('[data-module="projects"]').checked = true;
+                    toggleModulePermissionsUI(document.querySelector('[data-module="biodata"]'));
+                    toggleModulePermissionsUI(document.querySelector('[data-module="training"]'));
+                    toggleModulePermissionsUI(document.querySelector('[data-module="projects"]'));
+                    break;
+                case 'trainer':
+                    document.querySelector('[data-module="training"]').checked = true;
+                    toggleModulePermissionsUI(document.querySelector('[data-module="training"]'));
+                    break;
+                case 'scrum_master':
+                    document.querySelector('[data-module="projects"]').checked = true;
+                    toggleModulePermissionsUI(document.querySelector('[data-module="projects"]'));
+                    break;
+                case 'employee':
+                    document.querySelector('[data-module="biodata"]').checked = true;
+                    toggleModulePermissionsUI(document.querySelector('[data-module="biodata"]'));
+                    break;
+            }
+        }
+
+        
+
+        // Handle pagination button clicks (UI only - Django will fetch data)
+        function loadPreviousPage() {
+            const pageParam = new URLSearchParams(window.location.search);
+            const currentPage = parseInt(pageParam.get('page') || 1);
+            if (currentPage > 1) {
+                window.location.search = `?page=${currentPage - 1}`;
+            }
+        }
+
+        function loadNextPage() {
+            const pageParam = new URLSearchParams(window.location.search);
+            const currentPage = parseInt(pageParam.get('page') || 1);
+            window.location.search = `?page=${currentPage + 1}`;
+        }
+
+        // Handle Edit button (redirect to edit page)
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('edit-btn')) {
+                const userId = e.target.getAttribute('data-user-id');
+                window.location.href = `/users/edit/${userId}/`;
+            }
+        });
+
+        // Handle Delete button (submit form to Django)
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('delete-btn')) {
+                if (confirm('Are you sure you want to delete this user?')) {
+                    const userId = e.target.getAttribute('data-user-id');
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/users/delete/${userId}/`;
+                    form.innerHTML = `{% csrf_token %}<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">`;
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            }
+        });
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Count total users for pagination info
+            const rows = document.querySelectorAll('#usersTableBody tr');
+            const rowCount = rows.length;
+            
+            if (rowCount > 0) {
+                document.getElementById('totalRecords').textContent = rowCount;
+                document.getElementById('endRecord').textContent = Math.min(10, rowCount);
+            }
+        });
+
+
+
+    const searchInput = document.getElementById('searchUsers');
+    const roleFilter = document.getElementById('roleFilter');
+
+    function filterTable() {
+        const search = searchInput.value.toLowerCase();
+        const role = roleFilter.value;
+        const rows = document.querySelectorAll('#usersTableBody tr');
+
+        rows.forEach(row => {
+            const name = row.cells[0].textContent.toLowerCase();
+            const email = row.cells[1].textContent.toLowerCase();
+            const userRole = row.cells[2].textContent.toLowerCase();
+
+            const matchesSearch = name.includes(search) || email.includes(search);
+            const matchesRole = role === '' || userRole.includes(role);
+
+            row.style.display = matchesSearch && matchesRole ? '' : 'none';
+        });
+    }
+
+    searchInput.addEventListener('input', filterTable);
+    roleFilter.addEventListener('change', filterTable);
+</script>
+
+{% endblock %}

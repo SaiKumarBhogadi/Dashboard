@@ -1,0 +1,66 @@
+{% extends 'employee_app/base.html' %}
+
+{% block page_title %}Profile{% endblock %}
+
+{% block content %}
+
+    <div class="content-area">
+      <div class="content-card card-lg profile-v2">
+
+        <div class="card-header">
+          <h2>My Profile</h2>
+          <p class="card-subtitle">Personal and employment information</p>
+        </div>
+
+        <div class="profile-v2-grid">
+          <div class="profile-v2-left">
+            <div class="avatar-xl">{{ user.full_name|slice:":2"|upper }}</div>
+            <h3 class="pv-name">{{ user.full_name }}</h3>
+            <p class="pv-role">{{ user.get_role_display }}</p>
+            <div class="pv-contact">
+              <p class="pv-item"><strong>Email:</strong> {{ user.email }}</p>
+              <p class="pv-item"><strong>Phone:</strong> {{ user.phone|default:"-" }}</p>
+            </div>
+            <div class="pv-actions">
+              <a href="{% url 'employee_app:edit_user' user.id %}" class="btn btn-primary">Edit Profile</a>
+            </div>
+          </div>
+
+          <div class="profile-v2-right">
+            <div class="pv-section">
+              <h4>Personal Information</h4>
+              <div class="pv-row"><span>Full Name</span><span>{{ user.full_name }}</span></div>
+              <div class="pv-row"><span>Email</span><span>{{ user.email }}</span></div>
+              <div class="pv-row"><span>Phone</span><span>{{ user.phone|default:"-" }}</span></div>
+            </div>
+
+            <div class="pv-section">
+              <h4>Employment</h4>
+              <div class="pv-row"><span>Department</span><span>{{ user.get_department_display|default:"-" }}</span></div>
+              <div class="pv-row"><span>Role</span><span>{{ user.get_role_display }}</span></div>
+              <div class="pv-row"><span>Status</span><span>{{ user.get_status_display }}</span></div>
+            </div>
+
+            <div class="pv-section">
+              <h4>Module Permissions</h4>
+              <ul class="permission-list">
+                {% for module, perms in user.permissions.items %}
+                  <li><strong>{{ module|capfirst }}:</strong> 
+                    {% for perm, value in perms.items %}
+                      {% if value %}{{ perm|capfirst }}{% if not forloop.last %}, {% endif %}{% endif %}
+                    {% endfor %}
+                  </li>
+                {% empty %}
+                  <li>No permissions assigned</li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+ 
+
+
+{% endblock %}

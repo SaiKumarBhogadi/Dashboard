@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STACKLY - Add Training</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dashboard-page">
+    <div class="dashboard-wrapper">
+        
+        <!-- Left Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <img src="./logo.png" alt="STACKLY Logo" class="sidebar-logo-image">
+            </div>
+
+            <nav class="sidebar-menu">
+                <ul>
+                    <li><a href="index.html" class="menu-item" data-page="dashboard"><span class="menu-icon">📊</span><span class="menu-text">Dashboard</span></a></li>
+                    <li><a href="biodata.html" class="menu-item" data-page="biodata"><span class="menu-icon">👤</span><span class="menu-text">Employee Bio Data</span></a></li>
+                    <li><a href="training.html" class="menu-item active" data-page="training"><span class="menu-icon">📚</span><span class="menu-text">Training Details</span></a></li>
+                    <li><a href="project.html" class="menu-item" data-page="project"><span class="menu-icon">🎯</span><span class="menu-text">Projects</span></a></li>
+                    <li><a href="users_manager.html" class="menu-item" data-page="users"><span class="menu-icon">👥</span><span class="menu-text">User Management</span></a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+            
+            <!-- Top Navigation Bar -->
+            <header class="top-navbar">
+                <div class="navbar-left">
+                    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+                    <h3 class="page-title">Add Training</h3>
+                </div>
+                
+                <div class="navbar-right">
+                    <div class="profile-dropdown">
+                        <div class="profile-circle"><span class="profile-initial">JD</span></div>
+                        <div class="profile-info">
+                            <p class="profile-name">John Doe</p>
+                            <p class="profile-role">Employee</p>
+                        </div>
+                        <span class="dropdown-arrow">▼</span>
+                        <div class="dropdown-menu">
+                            <a href="profile.html" class="dropdown-item">View Profile</a>
+                            <a href="settings.html" class="dropdown-item">Settings</a>
+                            <hr>
+                            <a href="login.html" class="dropdown-item logout">Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="content-area">
+                <div class="content-card" style="max-width: 900px;">
+                    <div class="card-header">
+                        <h2>Add New Training Record</h2>
+                        <p class="card-subtitle">Fill in the employee information and training details below</p>
+                    </div>
+
+                    <form class="biodata-form" id="addTrainingForm" method="POST" action="/api/training/save/">
+                        
+                        <!-- Basic Information Section -->
+                        <div class="form-section">
+                            <h3 class="section-title">Basic Information</h3>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="employeeName">Employee Name *</label>
+                                    <input type="text" id="employeeName" name="employee_name" placeholder="Enter employee name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="employeeId">Employee ID *</label>
+                                    <input type="text" id="employeeId" name="employee_id" placeholder="e.g., EMP-001" required>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="trainingTrack">Training Track *</label>
+                                    <select id="trainingTrack" name="training_track" required onchange="loadTechnologies()">
+                                        <option value="">Select Training Track</option>
+                                        <option value="front_end">Front End Developer</option>
+                                        <option value="full_stack">Full Stack Developer</option>
+                                        <option value="cloud">Cloud Engineer</option>
+                                        <option value="data_analyst">Data Analyst</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Technologies Section (Dynamic) -->
+                        <div class="form-section">
+                            <h3 class="section-title">Technologies & Status</h3>
+                            <p style="font-size: 12px; color: #718096; margin-bottom: 15px;">Set training status and trainer for each technology</p>
+                            <div id="technologiesContainer" class="technologies-container">
+                                <!-- Technologies will be loaded dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Training Period -->
+                        <div class="form-section">
+                            <h3 class="section-title">Training Period</h3>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="startDate">Start Date *</label>
+                                    <input type="date" id="startDate" name="start_date" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="endDate">End Date *</label>
+                                    <input type="date" id="endDate" name="end_date" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Save Training Record</button>
+                            <a href="training.html" class="btn btn-secondary" style="text-decoration: none; text-align: center;">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Training Track to Technologies Mapping
+        const trackTechnologies = {
+            front_end: [
+                { name: 'HTML' },
+                { name: 'CSS' },
+                { name: 'JavaScript' },
+                { name: 'React JS' }
+            ],
+            full_stack: [
+                { name: 'HTML' },
+                { name: 'CSS' },
+                { name: 'JavaScript' },
+                { name: 'React JS' },
+                { name: 'MongoDB' },
+                { name: 'Python' }
+            ],
+            cloud: [
+                { name: 'SQL' },
+                { name: 'Python' },
+                { name: 'AWS' }
+            ],
+            data_analyst: [
+                { name: 'SQL' },
+                { name: 'Python' },
+                { name: 'Power BI' },
+                { name: 'Tableau' }
+            ]
+        };
+
+        // Load technologies based on selected training track
+        function loadTechnologies() {
+            const track = document.getElementById('trainingTrack').value;
+            const container = document.getElementById('technologiesContainer');
+            container.innerHTML = '';
+
+            if (!track) return;
+
+            const technologies = trackTechnologies[track];
+            
+            technologies.forEach((tech, index) => {
+                const card = document.createElement('div');
+                card.className = 'technology-status-card';
+                card.innerHTML = `
+                    <div class="tech-status-row">
+                        <div class="tech-name">${tech.name}</div>
+                        <div class="tech-form-group">
+                            <select name="tech_status_${index}" class="tech-status-select" required>
+                                <option value="">Status</option>
+                                <option value="Not Started">Not Started</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Completed">Completed</option>
+                                <option value="On Hold">On Hold</option>
+                            </select>
+                        </div>
+                        <div class="tech-form-group">
+                            <input type="text" name="tech_trainer_${index}" placeholder="Trainer Name" class="tech-trainer-input">
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Profile dropdown handling
+        const profileDropdown = document.querySelector('.profile-dropdown');
+        const dropdownMenu = document.querySelector('.dropdown-menu');
+
+        if (profileDropdown) {
+            profileDropdown.addEventListener('click', function(e) {
+                e.stopPropagation();
+                dropdownMenu.classList.toggle('show');
+            });
+        }
+
+        document.addEventListener('click', function() {
+            if (dropdownMenu) {
+                dropdownMenu.classList.remove('show');
+            }
+        });
+    </script>
+    <script src="./scripts.js"></script>
+</body>
+</html>

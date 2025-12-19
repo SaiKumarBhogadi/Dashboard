@@ -1,0 +1,114 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STACKLY - Employee Dashboard</title>
+     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body class="dashboard-page">
+    <div class="dashboard-wrapper">
+        
+        <!-- Left Sidebar -->
+        <aside class="sidebar">
+            <!-- Logo Section -->
+            <div class="sidebar-logo">
+                <img src="{% static 'images/logo.png' %}" alt="STACKLY Logo" class="sidebar-logo-image">
+            </div>
+
+            <!-- Navigation Menu -->
+            <nav class="sidebar-menu">
+                <ul>
+                    <li>
+                        <a href="{% url 'employee_app:dashboard' %}" class="menu-item" data-page="dashboard">
+                            <span class="menu-icon">📊</span>
+                            <span class="menu-text">Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'employee_app:biodata_list' %}" class="menu-item" data-page="biodata">
+                            <span class="menu-icon">👤</span>
+                            <span class="menu-text">Employee Bio Data</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'employee_app:training' %}" class="menu-item" data-page="training">
+                            <span class="menu-icon">📚</span>
+                            <span class="menu-text">Training Details</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'employee_app:projects' %}" class="menu-item" data-page="project">
+                            <span class="menu-icon">🎯</span>
+                            <span class="menu-text">Projects</span>
+                        </a>
+                    </li>
+                     <li>
+                        <a href="{% url 'employee_app:users_manager' %}" class="menu-item" data-page="users">
+                            <span class="menu-icon">👥</span>
+                            <span class="menu-text">User Management</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+            
+            <!-- Top Navigation Bar -->
+            <header class="top-navbar">
+                <div class="navbar-left">
+                      <h3> <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button></h3>
+                   <h3 class="page-title">{% block page_title %}Dashboard{% endblock %}</h3>
+
+                </div>
+                
+                <div class="navbar-right">
+                    <!-- Profile Section -->
+                    <div class="profile-dropdown">
+                        <div class="profile-circle"><span class="profile-initial">{{ user.full_name|slice:":2"|upper }}</span></div>
+                        <div class="profile-info">
+                             <p class="profile-name">{{ user.full_name }}</p>
+                             <p class="profile-role">{{ user.get_role_display }}</p>
+                        </div>
+                        <span class="dropdown-arrow">▼</span>
+                        
+                        <!-- Dropdown Menu -->
+                        <div class="dropdown-menu">
+                            <a href="{% url 'employee_app:profile' %}" class="dropdown-item">View Profile</a>
+                            <a href="{% url 'employee_app:settings' %}" class="dropdown-item">Settings</a>
+                            <hr>
+                            <a href="{% url 'employee_app:logout' %}" class="dropdown-item logout">Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            {% block content %}
+            
+
+            {% endblock %}
+        </div>
+    </div>
+
+    <script>
+        // Handle profile dropdown
+        const profileDropdown = document.querySelector('.profile-dropdown');
+        const dropdownMenu = document.querySelector('.dropdown-menu');
+
+        profileDropdown.addEventListener('click', function(e) {
+            e.stopPropagation();
+            dropdownMenu.classList.toggle('show');
+        });
+
+        document.addEventListener('click', function() {
+            dropdownMenu.classList.remove('show');
+        });
+        
+        
+    </script>
+    <script src="{% static 'js/scripts.js' %}"></script>
+</body>
+</html>

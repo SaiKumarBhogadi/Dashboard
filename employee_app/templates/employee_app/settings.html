@@ -1,0 +1,103 @@
+{% extends 'employee_app/base.html' %}
+{% block page_title %}Settings{% endblock %}
+{% block content %}
+
+
+      <div class="content-area">
+        <div class="settings-grid">
+          <div class="settings-card">
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
+
+            <h2>Account</h2>
+            <form method="POST" action="{% url 'employee_app:change_password' %}">
+            {% csrf_token %}
+
+              <!-- In Django templates include {% csrf_token %} -->
+              <label>Current password</label>
+              <input type="password" name="current_password" required>
+              <label>New password</label>
+              <input type="password" name="new_password" required>
+              <label>Confirm new password</label>
+              <input type="password" name="confirm_password" required>
+              <div class="form-actions">
+                <button type="submit" class="btn primary">Change password</button>
+              </div>
+            </form>
+          </div>
+
+          {% comment %} <div class="settings-card">
+            <h2>Preferences</h2>
+           <form method="POST" action="{% url 'employee_app:update_preferences' %}">
+            {% csrf_token %}
+              <label>Receive email notifications</label>
+               <select name="email_notifications">
+                <option value="enabled" {% if request.user.email_notifications == 'enabled' %}selected{% endif %}>Enabled</option>
+                <option value="disabled" {% if request.user.email_notifications == 'disabled' %}selected{% endif %}>Disabled</option>
+               </select>
+
+              <label>Time zone</label>
+               <select name="timezone">
+                <option {% if request.user.timezone == 'UTC' %}selected{% endif %}>UTC</option>
+                <option {% if request.user.timezone == 'Asia/Kolkata' %}selected{% endif %}>Asia/Kolkata</option>
+                <option {% if request.user.timezone == 'America/New_York' %}selected{% endif %}>America/New_York</option>
+               </select>
+
+                <!-- <label>Default dashboard view</label>
+                <select name="default_view">
+                <option value="overview">Overview</option>
+                <option value="projects">Projects</option>
+                <option value="training">Training</option>
+              </select> -->
+
+              <div class="form-actions">
+                <button type="submit" class="btn primary">Save preferences</button>
+                <button type="button" id="resetPrefs" class="btn">Reset</button>
+              </div>
+            </form>
+          </div> {% endcomment %}
+
+          <div class="settings-card">
+            <h2>Privacy & Sessions</h2>
+            <p>Manage active sessions, connected apps and privacy settings.</p>
+             {% if active_sessions %}
+    <table class="sessions-table">
+      <thead>
+        <tr>
+          <th>Session Key</th>
+          <th>Expires On</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for session in active_sessions %}
+          <tr>
+            <td>{{ session.session_key|slice:":8" }}****</td>
+            <td>{{ session.expire_date|date:"M d, Y H:i" }}</td>
+            <td>
+              {% if session.session_key == request.session.session_key %}
+                <span class="badge active">Current Session</span>
+              {% else %}
+                <span class="badge">Active</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No active sessions found.</p>
+  {% endif %}
+            <form method="POST" action="{% url 'employee_app:signout_all' %}">
+            {% csrf_token %}
+              <button class="btn danger">Sign out all devices</button>
+            </form>
+
+          </div>
+        </div>
+      </div>
+
+{% endblock %}

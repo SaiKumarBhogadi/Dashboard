@@ -1,0 +1,81 @@
+ {% extends 'employee_app/base.html' %}
+ {% load static %}
+ {% block content %}
+
+            <!-- Page Content -->
+            <div class="content-area">
+                <div class="dashboard-cards">
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <h4>Total Employees</h4>
+                        <p class="stat-number">245</p>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📚</div>
+                        <h4>Active Training</h4>
+                        <p class="stat-number">12</p>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✓</div>
+                        <h4>Total Projects</h4>
+                        <p class="stat-number">487</p>
+                    </div>
+                    <!-- <div class="stat-card">
+                        <div class="stat-icon">⭐</div>
+                        <h4>Performance</h4>
+                        <p class="stat-number">4.8/5</p>
+                    </div> -->
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3>Quick Links</h3>
+                        </div>
+                        <div class="quick-links">
+                            <a href="{% url 'employee_app:biodata_list' %}" class="quick-link-item">
+                                <span class="quick-icon">👤</span>
+                                <span>Update Bio Data</span>
+                            </a>
+                            <a href="{% url 'employee_app:training' %}" class="quick-link-item">
+                                <span class="quick-icon">📚</span>
+                                <span>View Training</span>
+                            </a>
+                            <a href="{% url 'employee_app:projects' %}" class="quick-link-item">
+                                <span class="quick-icon">🎯</span>
+                                <span>My Projects</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- <div class="content-card">
+                        <div class="card-header">
+                            <h3>Recent Activity</h3>
+                        </div>
+                        <div class="activity-list">
+                            <div class="activity-item">
+                                <span class="activity-icon">✓</span>
+                                <div class="activity-text">
+                                    <p class="activity-title">Profile Updated</p>
+                                    <p class="activity-time">2 hours ago</p>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <span class="activity-icon">📚</span>
+                                <div class="activity-text">
+                                    <p class="activity-title">React Development - 65%</p>
+                                    <p class="activity-time">1 day ago</p>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <span class="activity-icon">🎯</span>
+                                <div class="activity-text">
+                                    <p class="activity-title">Project Milestone Achieved</p>
+                                    <p class="activity-time">3 days ago</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div> -->
+                </div>
+            </div>
+ {% endblock %}
