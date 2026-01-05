@@ -21,9 +21,9 @@
               <p class="pv-item"><strong>Email:</strong> {{ user.email }}</p>
               <p class="pv-item"><strong>Phone:</strong> {{ user.phone|default:"-" }}</p>
             </div>
-            <div class="pv-actions">
+            {% comment %} <div class="pv-actions">
               <a href="{% url 'employee_app:edit_user' user.id %}" class="btn btn-primary">Edit Profile</a>
-            </div>
+            </div> {% endcomment %}
           </div>
 
           <div class="profile-v2-right">

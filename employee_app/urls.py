@@ -33,8 +33,12 @@ urlpatterns = [
     path('biodata/employees/', views.biodata_list, name='biodata_list'),
     path('biodata/view/<int:pk>/', views.view_biodata, name='view_biodata'),
     path('biodata/edit/<int:pk>/', views.edit_biodata, name='edit_biodata'),
+    path('biodata/delete/<int:pk>/', views.delete_biodata, name='delete_biodata'),
 
     path('settings/', views.app_settings, name='settings'),
     path('api/settings/change_password/', views.change_password, name='change_password'),
     path('api/settings/signout_all/', views.sign_out_all_devices, name='signout_all'),
+
+    path('notifications/mark-all-read/', views.mark_all_read, name='mark_all_read'),
+    path('notifications/all/', views.notifications_all, name='notifications_all'),
 ]

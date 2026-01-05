@@ -240,7 +240,9 @@
                             <th>Role</th>
                             <th>Department</th>
                             <th>Status</th>
+                            {% if request.user.is_superuser or request.user.role == 'super_admin' %}
                             <th>Actions</th>
+                            {% endif %}
                         </tr>
                     </thead>
 
@@ -268,6 +270,7 @@
                                 </span>
                             </td>
                             <td>
+                                {% if request.user.is_superuser or request.user.role == 'super_admin' %}
                                 <div class="action-buttons">
                                     <a href="{% url 'employee_app:edit_user' user.id %}">
                                         <button class="action-btn edit-btn">Edit</button>
@@ -275,6 +278,7 @@
                                     <button class="action-btn delete-btn"
                                             data-user-id="{{ user.id }}">Delete</button>
                                 </div>
+                                {% endif %}
                             </td>
                         </tr>
                         {% empty %}

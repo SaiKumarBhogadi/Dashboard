@@ -1,0 +1,25 @@
+{% extends 'employee_app/base.html' %}
+
+{% block page_title %}Delete Employee BioData{% endblock %}
+
+{% block content %}
+<div class="content-area">
+    <div class="content-card" style="max-width: 600px; margin: 0 auto;">
+        <h2>Confirm Deletion</h2>
+        <p>Are you sure you want to delete the bio data of:</p>
+        <h3>{{ bio.first_name }} {{ bio.last_name }}</h3>
+        <p><strong>Email:</strong> {{ bio.personal_email }}</p>
+        <p><strong>Employee ID:</strong> {{ bio.employee_id|default:"Not assigned" }}</p>
+
+        <form method="POST">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger" style="padding:12px 30px; margin-right:15px;">
+                Yes, Delete
+            </button>
+            <a href="{% url 'employee_app:view_biodata' bio.pk %}" class="btn btn-secondary" style="padding:12px 30px;">
+                Cancel
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

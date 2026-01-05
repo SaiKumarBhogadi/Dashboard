@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -62,6 +63,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'employee_app.context_processors.notifications_context',
             ],
         },
     },
@@ -73,12 +75,12 @@ WSGI_APPLICATION = 'employee_dashboard.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
 
 # Password validation
@@ -120,12 +122,15 @@ STATIC_URL = 'static/'
 AUTH_USER_MODEL = 'employee_app.CustomUser'
 
 
-
+import os
 # Static files
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    BASE_DIR / 'static'
+    os.path.join(BASE_DIR, "employee_app/static"),
 ]
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 
 # Media files (user-uploaded images)
 MEDIA_URL = '/media/'
@@ -140,6 +145,21 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'saibhogadi@thestackly.com'
-EMAIL_HOST_PASSWORD = 'krnywgfayuslgazu'
+EMAIL_HOST_USER = 'sainaidu6327@gmail.com'
+EMAIL_HOST_PASSWORD = 'ptzmtxoujdihuped'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'emp_db',
+        'USER': 'emp_db_admin',
+        'PASSWORD': 'Test@1234',
+        'HOST': 'localhost',     # or '127.0.0.1'
+        'PORT': '3306',
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
+    }
+}

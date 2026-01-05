@@ -66,3 +66,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+setTimeout(() => {
+    document.querySelectorAll('.general-message').forEach(msg => {
+      msg.classList.add('hide');
+      setTimeout(() => msg.remove(), 600);
+    });
+  }, 3000); // 3 seconds
+
+

@@ -60,21 +60,57 @@
             <!-- Top Navigation Bar -->
             <header class="top-navbar">
                 <div class="navbar-left">
-                      <h3> <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button></h3>
-                   <h3 class="page-title">{% block page_title %}Dashboard{% endblock %}</h3>
-
+                    <h3>
+                        <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+                    </h3>
+                    <h3 class="page-title">{% block page_title %}Dashboard{% endblock %}</h3>
                 </div>
-                
+
                 <div class="navbar-right">
+                    
+                     <!-- Notification Bell -->
+                <div class="notification-bell" id="notificationBell">
+                    <span class="bell-icon">🔔</span>
+                    {% if unread_notifications > 0 %}
+                        <span class="notification-badge" id="notificationCount">{{ unread_notifications }}</span>
+                    {% endif %}
+                </div>
+
+                <!-- Notification Dropdown -->
+                <div class="notification-dropdown" id="notificationDropdown">
+                    <div class="notification-header">
+                        <h4>Notifications</h4>
+                        <a href="#" class="mark-all-read" onclick="markAllRead(event)">Mark all as read</a>
+                    </div>
+                    <div class="notification-list">
+                        {% for n in request.user.notifications.all|slice:":8" %}
+                            <a href="{{ n.link|default:'#' }}" class="notification-item {% if not n.is_read %}unread{% endif %}">
+                                <div class="notif-content">
+                                    <strong>{{ n.title }}</strong>
+                                    <p>{{ n.message|truncatechars:60 }}</p>
+                                    <small>{{ n.created_at|timesince }} ago</small>
+                                </div>
+                            </a>
+                        {% empty %}
+                            <div class="notification-item empty">No new notifications</div>
+                        {% endfor %}
+                    </div>
+                    <div class="notification-footer">
+                        <a href="{% url 'employee_app:notifications_all' %}" class="view-all">View All</a>
+                    </div>
+                </div>
+
                     <!-- Profile Section -->
                     <div class="profile-dropdown">
-                        <div class="profile-circle"><span class="profile-initial">{{ user.full_name|slice:":2"|upper }}</span></div>
+                        <div class="profile-circle">
+                            <span class="profile-initial">{{ user.get_full_name|slice:":2"|upper }}</span>
+                        </div>
                         <div class="profile-info">
-                             <p class="profile-name">{{ user.full_name }}</p>
-                             <p class="profile-role">{{ user.get_role_display }}</p>
+                            <p class="profile-name">{{ user.get_full_name }}</p>
+                            <p class="profile-role">{{ user.get_role_display }}</p>
                         </div>
                         <span class="dropdown-arrow">▼</span>
-                        
+
                         <!-- Dropdown Menu -->
                         <div class="dropdown-menu">
                             <a href="{% url 'employee_app:profile' %}" class="dropdown-item">View Profile</a>
@@ -84,6 +120,11 @@
                         </div>
                     </div>
                 </div>
+
+               
+              
+
+      
             </header>
 
             {% block content %}
@@ -107,6 +148,63 @@
             dropdownMenu.classList.remove('show');
         });
         
+
+// Handle notification dropdown
+
+document.addEventListener('DOMContentLoaded', function() {
+    const bell = document.getElementById('notificationBell');
+    const dd = document.getElementById('notificationDropdown');
+
+    if (bell && dd) {
+        bell.addEventListener('click', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            dd.classList.toggle('show');
+        });
+
+        document.addEventListener('click', function(e) {
+            if (dd.classList.contains('show') && 
+                !dd.contains(e.target) && 
+                !bell.contains(e.target)) {
+                dd.classList.remove('show');
+            }
+        });
+    }
+});
+
+function markAllRead(e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    fetch("{% url 'employee_app:mark_all_read' %}", {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',  // ← This MUST be rendered by Django
+            'Content-Type': 'application/json'
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok: ' + response.status);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.status === 'ok') {
+            const badge = document.getElementById('notificationCount');
+            if (badge) badge.style.display = 'none';
+            location.reload();
+        } else {
+            alert('Failed to mark as read');
+        }
+    })
+    .catch(err => {
+        console.error('Mark read error:', err);
+        alert('Error marking notifications as read. Please try again.');
+    });
+}
+
         
     </script>
     <script src="{% static 'js/scripts.js' %}"></script>

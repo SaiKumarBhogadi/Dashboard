@@ -2,14 +2,12 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-
 class CustomUserManager(BaseUserManager):
     use_in_migrations = True
 
     def create_user(self, email, password=None, **extra_fields):
         if not email:
             raise ValueError('Email is required')
-
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
@@ -65,7 +63,7 @@ class CustomUser(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
-    objects = CustomUserManager()  # 🔥 THIS LINE IS REQUIRED
+    objects = CustomUserManager()
 
     def __str__(self):
         return self.email
@@ -83,19 +81,79 @@ class BioDataRequest(models.Model):
         ('rejected', 'Rejected'),
     )
 
+    BLOOD_GROUP_CHOICES = (
+        ('A+', 'A+'),
+        ('A-', 'A-'),
+        ('B+', 'B+'),
+        ('B-', 'B-'),
+        ('AB+', 'AB+'),
+        ('AB-', 'AB-'),
+        ('O+', 'O+'),
+        ('O-', 'O-'),
+    )
+
+    COUNTRY_CHOICES = (
+        ('india', 'India'),
+        ('usa', 'USA'),
+        ('canada', 'Canada'),
+        ('uk', 'UK'),
+        ('australia', 'Australia'),
+        # Add more countries as needed
+    )
+
+    POST_APPLIED_FOR_CHOICES = (
+        ('junior_developer', 'Junior Developer'),
+        ('frontend_developer', 'Frontend Developer'),
+        ('full_stack_developer', 'Full Stack Developer'),
+        ('qa_engineer', 'QA Engineer'),
+        # Add more as needed
+    )
+
+    GENDER_CHOICES = (
+        ('Male', 'Male'),
+        ('Female', 'Female'),
+        ('Non-binary', 'Non-binary'),
+        ('Prefer not to say', 'Prefer not to say'),
+    )
+
+    MARITAL_STATUS_CHOICES = (
+        ('Single', 'Single'),
+        ('Married', 'Married'),
+        ('Divorced', 'Divorced'),
+        ('Widowed', 'Widowed'),
+    )
+
+    EXPERIENCE_TYPE_CHOICES = (
+        ('fresher', 'Fresher'),
+        ('experienced', 'Experienced'),
+    )
+
     # Personal
-    full_name = models.CharField(max_length=255)
+    first_name = models.CharField(max_length=100)
+    middle_name = models.CharField(max_length=100, blank=True)
+    last_name = models.CharField(max_length=100)
     dob = models.DateField(null=True, blank=True)
-    gender = models.CharField(max_length=20, blank=True)
-    marital_status = models.CharField(max_length=20, blank=True)
+    gender = models.CharField(max_length=20, choices=GENDER_CHOICES, blank=True)
+    marital_status = models.CharField(max_length=20, choices=MARITAL_STATUS_CHOICES, blank=True)
     contact_number = models.CharField(max_length=20)
     emergency_contact = models.CharField(max_length=20, blank=True)
-    personal_email = models.EmailField(unique=True)  # Unique as requested
-    address = models.TextField(blank=True)
+    personal_email = models.EmailField(unique=True)
+    address_line1 = models.CharField(max_length=255, blank=True)
+    address_line2 = models.CharField(max_length=255, blank=True)
+    city = models.CharField(max_length=100, blank=True)
+    state = models.CharField(max_length=100, blank=True)
+    postal_code = models.CharField(max_length=20, blank=True)
+    country = models.CharField(max_length=20, choices=COUNTRY_CHOICES, blank=True)
     aadhar_no = models.CharField(max_length=20, blank=True)
     pan_no = models.CharField(max_length=20, blank=True)
-    bank_details = models.TextField(blank=True)
-    experience_type = models.CharField(max_length=20)  # fresher/experienced
+    bank_name = models.CharField(max_length=100, blank=True)
+    bank_branch = models.CharField(max_length=100, blank=True)
+    account_number = models.CharField(max_length=50, blank=True)
+    account_name = models.CharField(max_length=255, blank=True)
+    ifsc_code = models.CharField(max_length=20, blank=True)
+    experience_type = models.CharField(max_length=20, choices=EXPERIENCE_TYPE_CHOICES)
+    post_applied_for = models.CharField(max_length=50, choices=POST_APPLIED_FOR_CHOICES, blank=True)
+    blood_group = models.CharField(max_length=3, choices=BLOOD_GROUP_CHOICES, blank=True)
 
     # Files
     photo = models.ImageField(upload_to='biodata/photos/')
@@ -129,7 +187,8 @@ class BioDataRequest(models.Model):
     cert_year = models.PositiveIntegerField(null=True, blank=True)
     cert_document = models.FileField(upload_to='biodata/docs/', null=True, blank=True)
 
-    work_experience = models.JSONField(default=list, blank=True)
+    # Work Experience (dynamic + certificate)
+    work_experience = models.JSONField(default=list, blank=True)  # stores list of dicts from prev_employer[], etc.
 
     technical_skills = models.TextField()
     soft_skills = models.TextField(blank=True)
@@ -151,10 +210,34 @@ class BioDataRequest(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.full_name} - {self.personal_email}"
+        return f"{self.first_name} {self.last_name} - {self.personal_email}"
 
     class Meta:
         ordering = ['-created_at']
 
     def get_status_class(self):
         return {'pending': 'pending', 'approved': 'completed', 'rejected': 'danger'}[self.status]
+    
+
+class Notification(models.Model):
+    recipient = models.ForeignKey(
+        'CustomUser',
+        on_delete=models.CASCADE,
+        related_name='notifications'
+    )
+    notification_type = models.CharField(max_length=50)  # e.g., 'biodata_new', 'biodata_approved'
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    link = models.CharField(max_length=500, blank=True, null=True)  # optional URL
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['-created_at']),
+            models.Index(fields=['recipient', 'is_read']),
+        ]
+
+    def __str__(self):
+        return f"{self.title} → {self.recipient.email if self.recipient else 'Deleted'}"

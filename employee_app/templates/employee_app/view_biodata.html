@@ -1,12 +1,12 @@
 {% extends 'employee_app/base.html' %}
 
-{% block page_title %}View Employee Bio Data - {{ bio.full_name }}{% endblock %}
+{% block page_title %}View Employee Bio Data - {{ bio.first_name }} {{ bio.last_name }}{% endblock %}
 
 {% block content %}
 <div class="content-area">
   <div class="content-card" style="max-width:1100px;">
     <div class="card-header">
-      <h2>{{ bio.full_name }}</h2>
+      <h2>{{ bio.first_name }} {{ bio.middle_name|default:'' }} {{ bio.last_name }}</h2>
       <p class="card-subtitle">
         Employee ID: {{ bio.employee_id|default:"Not assigned" }} • 
         Official Email: {{ bio.official_email|default:"-" }} • 
@@ -17,28 +17,62 @@
     <!-- Personal Details -->
     <div class="form-section">
       <h3 class="section-title">Personal Details</h3>
+
       <div class="form-row">
-        <div class="form-group"><label>Name</label><input value="{{ bio.full_name }}" readonly class="readonly"></div>
-        <div class="form-group"><label>Date of Birth</label><input value="{{ bio.dob|date:"d M Y"|default:"-" }}" readonly class="readonly"></div>
+        <div class="form-group"><label>First Name</label><input value="{{ bio.first_name }}" readonly class="readonly"></div>
+        <div class="form-group"><label>Middle Name</label><input value="{{ bio.middle_name|default:'-' }}" readonly class="readonly"></div>
+        <div class="form-group"><label>Last Name</label><input value="{{ bio.last_name }}" readonly class="readonly"></div>
       </div>
+
       <div class="form-row">
-        <div class="form-group"><label>Gender</label><input value="{{ bio.gender|default:"-" }}" readonly class="readonly"></div>
-        <div class="form-group"><label>Marital Status</label><input value="{{ bio.marital_status|default:"-" }}" readonly class="readonly"></div>
+        <div class="form-group"><label>Date of Birth</label><input value="{{ bio.dob|date:'d M Y'|default:'-' }}" readonly class="readonly"></div>
+        <div class="form-group"><label>Gender</label><input value="{{ bio.gender|default:'-' }}" readonly class="readonly"></div>
+        <div class="form-group"><label>Marital Status</label><input value="{{ bio.marital_status|default:'-' }}" readonly class="readonly"></div>
       </div>
+
       <div class="form-row">
         <div class="form-group"><label>Contact Number</label><input value="{{ bio.contact_number }}" readonly class="readonly"></div>
-        <div class="form-group"><label>Emergency Contact</label><input value="{{ bio.emergency_contact|default:"-" }}" readonly class="readonly"></div>
+        <div class="form-group"><label>Emergency Contact</label><input value="{{ bio.emergency_contact|default:'-' }}" readonly class="readonly"></div>
+        <div class="form-group"><label>Blood Group</label><input value="{{ bio.blood_group|default:'-' }}" readonly class="readonly"></div>
       </div>
+
       <div class="form-row">
         <div class="form-group"><label>Personal Email</label><input value="{{ bio.personal_email }}" readonly class="readonly"></div>
-        <div class="form-group"><label>Address</label><input value="{{ bio.address|default:"-" }}" readonly class="readonly"></div>
+        <div class="form-group"><label>Post Applied For</label><input value="{{ bio.post_applied_for|default:'-' }}" readonly class="readonly"></div>
+      </div>
+
+      <!-- Address Fields -->
+      <div class="form-row">
+        <div class="form-group"><label>Address Line 1</label><input value="{{ bio.address_line1|default:'-' }}" readonly class="readonly"></div>
+        <div class="form-group"><label>Address Line 2</label><input value="{{ bio.address_line2|default:'-' }}" readonly class="readonly"></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label>Aadhar No</label><input value="{{ bio.aadhar_no|default:"-" }}" readonly class="readonly"></div>
-        <div class="form-group"><label>PAN No</label><input value="{{ bio.pan_no|default:"-" }}" readonly class="readonly"></div>
+        <div class="form-group"><label>City</label><input value="{{ bio.city|default:'-' }}" readonly class="readonly"></div>
+        <div class="form-group"><label>State / Province / Region</label><input value="{{ bio.state|default:'-' }}" readonly class="readonly"></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label>Bank Details</label><input value="{{ bio.bank_details|default:"-" }}" readonly class="readonly"></div>
+        <div class="form-group"><label>Postal Code</label><input value="{{ bio.postal_code|default:'-' }}" readonly class="readonly"></div>
+        <div class="form-group"><label>Country</label><input value="{{ bio.get_country_display|default:'-' }}" readonly class="readonly"></div>
+      </div>
+
+      <!-- Aadhar & PAN -->
+      <div class="form-row">
+        <div class="form-group"><label>Aadhar Card No</label><input value="{{ bio.aadhar_no|default:'-' }}" readonly class="readonly"></div>
+        <div class="form-group"><label>PAN Card No</label><input value="{{ bio.pan_no|default:'-' }}" readonly class="readonly"></div>
+      </div>
+
+      <!-- Bank Details -->
+      <div class="form-row">
+        <div class="form-group"><label>Bank Name</label><input value="{{ bio.bank_name|default:'-' }}" readonly class="readonly"></div>
+        <div class="form-group"><label>Bank Branch Name</label><input value="{{ bio.bank_branch|default:'-' }}" readonly class="readonly"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Account Number</label><input value="{{ bio.account_number|default:'-' }}" readonly class="readonly"></div>
+        <div class="form-group"><label>Account Name</label><input value="{{ bio.account_name|default:'-' }}" readonly class="readonly"></div>
+        <div class="form-group"><label>IFSC Code</label><input value="{{ bio.ifsc_code|default:'-' }}" readonly class="readonly"></div>
+      </div>
+
+      <div class="form-row">
         <div class="form-group"><label>Fresher/Experience</label><input value="{{ bio.experience_type }}" readonly class="readonly"></div>
       </div>
     </div>
@@ -47,16 +81,16 @@
     <div class="form-section">
       <h3 class="section-title">Professional Details</h3>
       <div class="form-row">
-        <div class="form-group"><label>Employee ID</label><input value="{{ bio.employee_id|default:"-" }}" readonly class="readonly"></div>
-        <div class="form-group"><label>Official Email</label><input value="{{ bio.official_email|default:"-" }}" readonly class="readonly"></div>
+        <div class="form-group"><label>Employee ID</label><input value="{{ bio.employee_id|default:'-' }}" readonly class="readonly"></div>
+        <div class="form-group"><label>Official Email</label><input value="{{ bio.official_email|default:'-' }}" readonly class="readonly"></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label>Designation</label><input value="{{ bio.designation|default:"-" }}" readonly class="readonly"></div>
-        <div class="form-group"><label>Department</label><input value="{{ bio.department|default:"-" }}" readonly class="readonly"></div>
+        <div class="form-group"><label>Designation</label><input value="{{ bio.designation|default:'-' }}" readonly class="readonly"></div>
+        <div class="form-group"><label>Department</label><input value="{{ bio.department|default:'-' }}" readonly class="readonly"></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label>Date of Joining</label><input value="{{ bio.doj|date:"d M Y"|default:"-" }}" readonly class="readonly"></div>
-        <div class="form-group"><label>Work Mode</label><input value="{{ bio.work_mode|default:"-" }}" readonly class="readonly"></div>
+        <div class="form-group"><label>Date of Joining</label><input value="{{ bio.doj|date:'d M Y'|default:'-' }}" readonly class="readonly"></div>
+        <div class="form-group"><label>Work Mode</label><input value="{{ bio.work_mode|default:'-' }}" readonly class="readonly"></div>
       </div>
     </div>
 
@@ -84,7 +118,16 @@
       <h3 class="section-title">Work Experience</h3>
       {% if bio.work_experience %}
         {% for exp in bio.work_experience %}
-          <p><strong>{{ exp.employer }}</strong> — {{ exp.designation }} ({{ exp.duration }})<br>Email: {{ exp.email|default:"-" }}</p>
+          <p><strong>{{ exp.employer }}</strong> — {{ exp.designation }} ({{ exp.duration }})<br>Email: {{ exp.email|default:'-' }}</p>
+        {% if exp.certificate_path %}
+              <p>
+                <a href="{{ exp.certificate_path }}" target="_blank">
+                  View Certificate
+                </a>
+              </p>
+            {% else %}
+              <p>No certificate uploaded.</p>
+            {% endif %}
         {% endfor %}
       {% else %}
         <p>No previous experience (Fresher)</p>
@@ -96,27 +139,27 @@
       <h3 class="section-title">Skills & References</h3>
       <div class="form-row">
         <div class="form-group"><label>Technical Skills</label><input value="{{ bio.technical_skills }}" readonly class="readonly"></div>
-        <div class="form-group"><label>Soft Skills</label><input value="{{ bio.soft_skills|default:"-" }}" readonly class="readonly"></div>
+        <div class="form-group"><label>Soft Skills</label><input value="{{ bio.soft_skills|default:'-' }}" readonly class="readonly"></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label>Reference Name</label><input value="{{ bio.reference_name|default:"-" }}" readonly class="readonly"></div>
-        <div class="form-group"><label>Reference Contact</label><input value="{{ bio.reference_contact|default:"-" }}" readonly class="readonly"></div>
+        <div class="form-group"><label>Reference Name</label><input value="{{ bio.reference_name|default:'-' }}" readonly class="readonly"></div>
+        <div class="form-group"><label>Reference Contact</label><input value="{{ bio.reference_contact|default:'-' }}" readonly class="readonly"></div>
       </div>
     </div>
 
-    <!-- Uploaded Documents -->
+    <!-- Uploaded Documents (All with "View") -->
     <div class="form-section">
       <h3 class="section-title">Uploaded Documents</h3>
       <div class="doc-grid">
         {% if bio.photo %}<div class="doc"><strong>Photo</strong><br><a href="{{ bio.photo.url }}" target="_blank">View Photo</a></div>{% endif %}
-        {% if bio.resume %}<div class="doc"><strong>Resume</strong><br><a href="{{ bio.resume.url }}" target="_blank">Download Resume</a></div>{% endif %}
-        {% if bio.aadhar_card %}<div class="doc"><strong>Aadhar Card</strong><br><a href="{{ bio.aadhar_card.url }}" target="_blank">View</a></div>{% endif %}
-        {% if bio.pan_card %}<div class="doc"><strong>PAN Card</strong><br><a href="{{ bio.pan_card.url }}" target="_blank">View</a></div>{% endif %}
-        {% if bio.ssc_marksheet %}<div class="doc"><strong>10th Marksheet</strong><br><a href="{{ bio.ssc_marksheet.url }}" target="_blank">View</a></div>{% endif %}
-        {% if bio.sslc_marksheet %}<div class="doc"><strong>12th Marksheet</strong><br><a href="{{ bio.sslc_marksheet.url }}" target="_blank">View</a></div>{% endif %}
-        {% if bio.ug_documents %}<div class="doc"><strong>UG Documents</strong><br><a href="{{ bio.ug_documents.url }}" target="_blank">View</a></div>{% endif %}
-        {% if bio.pg_documents %}<div class="doc"><strong>PG Documents</strong><br><a href="{{ bio.pg_documents.url }}" target="_blank">View</a></div>{% endif %}
-        {% if bio.cert_document %}<div class="doc"><strong>Certification</strong><br><a href="{{ bio.cert_document.url }}" target="_blank">View</a></div>{% endif %}
+        {% if bio.resume %}<div class="doc"><strong>Resume</strong><br><a href="{{ bio.resume.url }}" target="_blank">View Resume</a></div>{% endif %}
+        {% if bio.aadhar_card %}<div class="doc"><strong>Aadhar Card</strong><br><a href="{{ bio.aadhar_card.url }}" target="_blank">View Aadhar</a></div>{% endif %}
+        {% if bio.pan_card %}<div class="doc"><strong>PAN Card</strong><br><a href="{{ bio.pan_card.url }}" target="_blank">View PAN</a></div>{% endif %}
+        {% if bio.ssc_marksheet %}<div class="doc"><strong>10th Marksheet</strong><br><a href="{{ bio.ssc_marksheet.url }}" target="_blank">View 10th Marksheet</a></div>{% endif %}
+        {% if bio.sslc_marksheet %}<div class="doc"><strong>12th Marksheet</strong><br><a href="{{ bio.sslc_marksheet.url }}" target="_blank">View 12th Marksheet</a></div>{% endif %}
+        {% if bio.ug_documents %}<div class="doc"><strong>UG Documents</strong><br><a href="{{ bio.ug_documents.url }}" target="_blank">View UG Documents</a></div>{% endif %}
+        {% if bio.pg_documents %}<div class="doc"><strong>PG Documents</strong><br><a href="{{ bio.pg_documents.url }}" target="_blank">View PG Documents</a></div>{% endif %}
+        {% if bio.cert_document %}<div class="doc"><strong>Certification Document</strong><br><a href="{{ bio.cert_document.url }}" target="_blank">View Certification</a></div>{% endif %}
       </div>
     </div>
 

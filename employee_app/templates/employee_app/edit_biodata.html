@@ -1,38 +1,56 @@
 {% extends 'employee_app/base.html' %}
 
-{% block page_title %}Edit Employee Bio Data - {{ bio.full_name }}{% endblock %}
+{% block page_title %}Edit Employee Bio Data - {{ bio.first_name }} {{ bio.last_name }}{% endblock %}
 
 {% block content %}
 <div class="content-area">
   <div class="content-card" style="max-width:1100px;">
     <div class="card-header">
-      <h2>Edit: {{ bio.full_name }}</h2>
+      <h2>Edit: {{ bio.first_name }} {{ bio.middle_name|default:'' }} {{ bio.last_name }}</h2>
       <p class="card-subtitle">Employee ID: {{ bio.employee_id|default:"Not assigned" }} • Status: Approved</p>
     </div>
 
-    <form method="POST">
+    <form method="POST" enctype="multipart/form-data">
       {% csrf_token %}
 
       <!-- Personal Details -->
       <div class="form-section">
         <h3 class="section-title">Personal Details</h3>
+
         <div class="form-row">
-          <div class="form-group"><label>Name *</label><input name="full_name" value="{{ bio.full_name }}" required></div>
-          <div class="form-group"><label>Date of Birth</label><input name="dob" type="date" value="{{ bio.dob|date:'Y-m-d'|default:'' }}"></div>
+          <div class="form-group">
+            <label>First Name *</label>
+            <input name="first_name" type="text" value="{{ bio.first_name }}" placeholder="Enter first name" required>
+          </div>
+          <div class="form-group">
+            <label>Middle Name</label>
+            <input name="middle_name" type="text" value="{{ bio.middle_name }}" placeholder="Enter middle name (optional)">
+          </div>
+          <div class="form-group">
+            <label>Last Name *</label>
+            <input name="last_name" type="text" value="{{ bio.last_name }}" placeholder="Enter last name" required>
+          </div>
         </div>
+
         <div class="form-row">
-          <div class="form-group"><label>Gender</label>
+          <div class="form-group">
+            <label>Date of Birth</label>
+            <input name="dob" type="date" value="{{ bio.dob|date:'Y-m-d'|default:'' }}">
+          </div>
+          <div class="form-group">
+            <label>Gender</label>
             <select name="gender">
-              <option value="">Select</option>
+              <option value="">Select Gender</option>
               <option value="Male" {% if bio.gender == 'Male' %}selected{% endif %}>Male</option>
               <option value="Female" {% if bio.gender == 'Female' %}selected{% endif %}>Female</option>
               <option value="Non-binary" {% if bio.gender == 'Non-binary' %}selected{% endif %}>Non-binary</option>
               <option value="Prefer not to say" {% if bio.gender == 'Prefer not to say' %}selected{% endif %}>Prefer not to say</option>
             </select>
           </div>
-          <div class="form-group"><label>Marital Status</label>
+          <div class="form-group">
+            <label>Marital Status</label>
             <select name="marital_status">
-              <option value="">Select</option>
+              <option value="">Select Marital Status</option>
               <option value="Single" {% if bio.marital_status == 'Single' %}selected{% endif %}>Single</option>
               <option value="Married" {% if bio.marital_status == 'Married' %}selected{% endif %}>Married</option>
               <option value="Divorced" {% if bio.marital_status == 'Divorced' %}selected{% endif %}>Divorced</option>
@@ -40,21 +58,129 @@
             </select>
           </div>
         </div>
+
         <div class="form-row">
-          <div class="form-group"><label>Contact Number *</label><input name="contact_number" value="{{ bio.contact_number }}" required></div>
-          <div class="form-group"><label>Emergency Contact</label><input name="emergency_contact" value="{{ bio.emergency_contact }}"></div>
+          <div class="form-group">
+            <label>Contact Number *</label>
+            <input name="contact_number" type="tel" value="{{ bio.contact_number }}" placeholder="e.g., 9876543210" required>
+          </div>
+          <div class="form-group">
+            <label>Emergency Contact</label>
+            <input name="emergency_contact" type="tel" value="{{ bio.emergency_contact }}" placeholder="e.g., 9876543210 (optional)">
+          </div>
+          <div class="form-group">
+            <label>Blood Group</label>
+            <select name="blood_group">
+              <option value="">Select Blood Group</option>
+              <option value="A+" {% if bio.blood_group == 'A+' %}selected{% endif %}>A+</option>
+              <option value="A-" {% if bio.blood_group == 'A-' %}selected{% endif %}>A-</option>
+              <option value="B+" {% if bio.blood_group == 'B+' %}selected{% endif %}>B+</option>
+              <option value="B-" {% if bio.blood_group == 'B-' %}selected{% endif %}>B-</option>
+              <option value="AB+" {% if bio.blood_group == 'AB+' %}selected{% endif %}>AB+</option>
+              <option value="AB-" {% if bio.blood_group == 'AB-' %}selected{% endif %}>AB-</option>
+              <option value="O+" {% if bio.blood_group == 'O+' %}selected{% endif %}>O+</option>
+              <option value="O-" {% if bio.blood_group == 'O-' %}selected{% endif %}>O-</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Personal Email *</label>
+            <input name="personal_email" type="email" value="{{ bio.personal_email }}" placeholder="e.g., employee@example.com" required>
+          </div>
+          <div class="form-group">
+            <label>Post Applied For</label>
+            <select name="post_applied_for">
+              <option value="">Select Position</option>
+              <option value="junior_developer" {% if bio.post_applied_for == 'junior_developer' %}selected{% endif %}>Junior Developer</option>
+              <option value="frontend_developer" {% if bio.post_applied_for == 'frontend_developer' %}selected{% endif %}>Frontend Developer</option>
+              <option value="full_stack_developer" {% if bio.post_applied_for == 'full_stack_developer' %}selected{% endif %}>Full Stack Developer</option>
+              <option value="qa_engineer" {% if bio.post_applied_for == 'qa_engineer' %}selected{% endif %}>QA Engineer</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Address Fields -->
+        <div class="form-row">
+          <div class="form-group">
+            <label>Address Line 1</label>
+            <input name="address_line1" type="text" value="{{ bio.address_line1 }}" placeholder="House No, Street name">
+          </div>
+          <div class="form-group">
+            <label>Address Line 2</label>
+            <input name="address_line2" type="text" value="{{ bio.address_line2 }}" placeholder="Apartment, Landmark (optional)">
+          </div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label>Personal Email *</label><input name="personal_email" type="email" value="{{ bio.personal_email }}" required></div>
-          <div class="form-group"><label>Address</label><input name="address" value="{{ bio.address }}"></div>
+          <div class="form-group">
+            <label>City</label>
+            <input name="city" type="text" value="{{ bio.city }}" placeholder="e.g., Mumbai">
+          </div>
+          <div class="form-group">
+            <label>State / Province / Region</label>
+            <input name="state" type="text" value="{{ bio.state }}" placeholder="e.g., Maharashtra">
+          </div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label>Aadhar No</label><input name="aadhar_no" value="{{ bio.aadhar_no }}"></div>
-          <div class="form-group"><label>PAN No</label><input name="pan_no" value="{{ bio.pan_no }}"></div>
+          <div class="form-group">
+            <label>Postal Code</label>
+            <input name="postal_code" type="text" value="{{ bio.postal_code }}" placeholder="e.g., 400001">
+          </div>
+          <div class="form-group">
+            <label>Country</label>
+            <select name="country">
+              <option value="">Select Country</option>
+              <option value="india" {% if bio.country == 'india' %}selected{% endif %}>India</option>
+              <option value="usa" {% if bio.country == 'usa' %}selected{% endif %}>USA</option>
+              <option value="canada" {% if bio.country == 'canada' %}selected{% endif %}>Canada</option>
+              <option value="uk" {% if bio.country == 'uk' %}selected{% endif %}>UK</option>
+              <option value="australia" {% if bio.country == 'australia' %}selected{% endif %}>Australia</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Aadhar & PAN -->
+        <div class="form-row">
+          <div class="form-group">
+            <label>Aadhar Card No</label>
+            <input name="aadhar_no" type="text" value="{{ bio.aadhar_no }}" placeholder="e.g., 1234 5678 9012">
+          </div>
+          <div class="form-group">
+            <label>PAN Card No</label>
+            <input name="pan_no" type="text" value="{{ bio.pan_no }}" placeholder="e.g., ABCDE1234F" style="text-transform:uppercase;">
+          </div>
+        </div>
+
+        <!-- Bank Details -->
+        <div class="form-row">
+          <div class="form-group">
+            <label>Bank Name</label>
+            <input name="bank_name" type="text" value="{{ bio.bank_name }}" placeholder="e.g., State Bank of India">
+          </div>
+          <div class="form-group">
+            <label>Bank Branch Name</label>
+            <input name="bank_branch" type="text" value="{{ bio.bank_branch }}" placeholder="e.g., Andheri West Branch">
+          </div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label>Bank Details</label><input name="bank_details" value="{{ bio.bank_details }}"></div>
-          <div class="form-group"><label>Fresher/Experience *</label>
+          <div class="form-group">
+            <label>Account Number</label>
+            <input name="account_number" type="text" value="{{ bio.account_number }}" placeholder="e.g., 123456789012">
+          </div>
+          <div class="form-group">
+            <label>Account Name</label>
+            <input name="account_name" type="text" value="{{ bio.account_name }}" placeholder="e.g., John Doe">
+          </div>
+          <div class="form-group">
+            <label>IFSC Code</label>
+            <input name="ifsc_code" type="text" value="{{ bio.ifsc_code }}" placeholder="e.g., SBIN0001234">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Fresher/Experience *</label>
             <select name="experience_type" required>
               <option value="fresher" {% if bio.experience_type == 'fresher' %}selected{% endif %}>Fresher</option>
               <option value="experienced" {% if bio.experience_type == 'experienced' %}selected{% endif %}>Experienced</option>
@@ -67,22 +193,30 @@
       <div class="form-section">
         <h3 class="section-title">Professional Details</h3>
         <div class="form-row">
-          <div class="form-group"><label>Employee ID *</label><input name="employee_id" value="{{ bio.employee_id }}" required></div>
-          <div class="form-group"><label>Official Email *</label><input name="official_email" type="email" value="{{ bio.official_email }}" required></div>
+          <div class="form-group">
+            <label>Employee ID *</label>
+            <input name="employee_id" value="{{ bio.employee_id|default:'' }}" placeholder="e.g., EMP-2025-001" required>
+          </div>
+          <div class="form-group">
+            <label>Official Email *</label>
+            <input name="official_email" type="email" value="{{ bio.official_email|default:'' }}" placeholder="e.g., employee@stackly.com" required>
+          </div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label>Designation *</label>
+          <div class="form-group">
+            <label>Designation *</label>
             <select name="designation" required>
-              <option value="">Select</option>
+              <option value="">Select Designation</option>
               <option value="Junior Developer" {% if bio.designation == 'Junior Developer' %}selected{% endif %}>Junior Developer</option>
               <option value="Frontend Developer" {% if bio.designation == 'Frontend Developer' %}selected{% endif %}>Frontend Developer</option>
               <option value="Full Stack Developer" {% if bio.designation == 'Full Stack Developer' %}selected{% endif %}>Full Stack Developer</option>
               <option value="QA Engineer" {% if bio.designation == 'QA Engineer' %}selected{% endif %}>QA Engineer</option>
             </select>
           </div>
-          <div class="form-group"><label>Department *</label>
+          <div class="form-group">
+            <label>Department *</label>
             <select name="department" required>
-              <option value="">Select</option>
+              <option value="">Select Department</option>
               <option value="Software Development" {% if bio.department == 'Software Development' %}selected{% endif %}>Software Development</option>
               <option value="Training & Development" {% if bio.department == 'Training & Development' %}selected{% endif %}>Training & Development</option>
               <option value="HR" {% if bio.department == 'HR' %}selected{% endif %}>HR</option>
@@ -90,10 +224,14 @@
           </div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label>Date of Joining *</label><input type="date" name="doj" value="{{ bio.doj|date:'Y-m-d' }}" required></div>
-          <div class="form-group"><label>Work Mode</label>
+          <div class="form-group">
+            <label>Date of Joining *</label>
+            <input type="date" name="doj" value="{{ bio.doj|date:'Y-m-d'|default:'' }}" required>
+          </div>
+          <div class="form-group">
+            <label>Work Mode</label>
             <select name="work_mode">
-              <option value="">Select</option>
+              <option value="">Select Work Mode</option>
               <option value="Remote" {% if bio.work_mode == 'Remote' %}selected{% endif %}>Remote</option>
               <option value="Onsite" {% if bio.work_mode == 'Onsite' %}selected{% endif %}>Onsite</option>
               <option value="Hybrid" {% if bio.work_mode == 'Hybrid' %}selected{% endif %}>Hybrid</option>
@@ -106,8 +244,14 @@
       <div class="form-section">
         <h3 class="section-title">Skills</h3>
         <div class="form-row">
-          <div class="form-group"><label>Technical Skills *</label><input name="technical_skills" value="{{ bio.technical_skills }}" required></div>
-          <div class="form-group"><label>Soft Skills</label><input name="soft_skills" value="{{ bio.soft_skills }}"></div>
+          <div class="form-group">
+            <label>Technical Skills *</label>
+            <textarea name="technical_skills" rows="3" placeholder="e.g., Python, React, Django, AWS, SQL" required>{{ bio.technical_skills }}</textarea>
+          </div>
+          <div class="form-group">
+            <label>Soft Skills</label>
+            <textarea name="soft_skills" rows="3" placeholder="e.g., Communication, Teamwork, Leadership, Problem Solving">{{ bio.soft_skills }}</textarea>
+          </div>
         </div>
       </div>
 
@@ -115,11 +259,18 @@
       <div class="form-section">
         <h3 class="section-title">References</h3>
         <div class="form-row">
-          <div class="form-group"><label>Name</label><input name="reference_name" value="{{ bio.reference_name }}"></div>
-          <div class="form-group"><label>Contact Number</label><input name="reference_contact" value="{{ bio.reference_contact }}"></div>
+          <div class="form-group">
+            <label>Name</label>
+            <input name="reference_name" type="text" value="{{ bio.reference_name }}" placeholder="e.g., Mr. Rajesh Kumar">
+          </div>
+          <div class="form-group">
+            <label>Contact Number</label>
+            <input name="reference_contact" type="tel" value="{{ bio.reference_contact }}" placeholder="e.g., 9876543210">
+          </div>
         </div>
       </div>
 
+      <!-- Form Actions -->
       <div class="form-actions" style="margin:60px 0; text-align:center;">
         <button type="submit" class="btn btn-primary" style="padding:16px 60px; font-size:17px;">Save Changes</button>
         <a href="{% url 'employee_app:view_biodata' bio.pk %}" class="btn btn-secondary" style="padding:16px 40px; margin-left:20px;">Cancel</a>

@@ -1,204 +1,190 @@
 {% extends 'employee_app/base.html' %}
 
 {% block page_title %}Employee Biodata{% endblock %}
+
 {% block content %}
-            <!-- Page Content -->
-            <div class="content-area">
+<div class="content-area">
+  <div class="content-card">
+    <div class="card-header">
+      <h2>All Employees</h2>
+      <div class="header-row">
+        <p class="card-subtitle">View and manage all employee information</p>
+        <a href="{% url 'employee_app:public_biodata_form' %}" class="btn btn-primary public-btn">Public Bio Data Form</a>
+      </div>
+    </div>
 
-                <!-- Employees List Section -->
-                <div class="content-card">
-                    <div class="card-header">
-                        <h2>All Employees</h2>
-                        <div class="header-row">
-                            <p class="card-subtitle">View and manage all employee information</p>
+    <!-- Search and Filters -->
+    <div class="list-controls">
+      <input type="text" id="searchEmployees" placeholder="Search by name, email, or ID..." class="search-input" onkeyup="searchEmployeesTable()">
+      <select id="departmentFilter" class="role-filter" onchange="filterByDepartment()">
+        <option value="">All Departments</option>
+        <option value="Software Development">Software Development</option>
+        <option value="HR">HR</option>
+        <option value="Finance">Finance</option>
+        <option value="Operations">Operations</option>
+        <option value="Training">Training & Development</option>
+      </select>
+      <a href="{% url 'employee_app:pending_requests' %}" class="btn btn-primary" style="text-decoration: none;">View Requests</a>
+    </div>
 
-                        <a href="{% url 'employee_app:public_biodata_form' %}" class="btn btn-primary public-btn"> Public Bio Data Form </a>
-                        </div>
-                    </div>
-
-                    <!-- Search and Filters -->
-                    <div class="list-controls">
-                        <input type="text" id="searchEmployees" placeholder="Search by name, email, or ID..."
-                            class="search-input" onkeyup="searchEmployeesTable()">
-                        <select id="departmentFilter" class="role-filter" onchange="filterByDepartment()">
-                            <option value="">All Departments</option>
-                            <option value="Software Development">Software Development</option>
-                            <option value="HR">HR</option>
-                            <option value="Finance">Finance</option>
-                            <option value="Operations">Operations</option>
-                            <option value="Training">Training & Development</option>
-                        </select>
-                        <a href="{% url 'employee_app:pending_requests' %}" class="btn btn-primary" style="text-decoration: none;">View Requests</a>
-                    </div>
-
-                    <!-- Employees Table -->
-                    <div class="table-container">
-                        <div class="table-wrapper">
-                        <table class="employees-biodata-table">
-                            <thead>
-                                <tr>
-                                    <th id="serial-no" style="width: 30px;">S.No</th>
-                                    <th>Employee Name</th>
-                                    <th>Employee ID</th>
-                                    <th>Email</th>
-                                    <th>Department</th>
-                                    <th>Position</th>
-                                    <th>Joining Date</th>
-                                    <!-- <th>Status</th> -->
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="employeesTableBody">
-                                {% for employee in employees %}
-                                <tr data-employee-name="{{ employee.full_name }}" data-employee-id="{{ employee.employee_id|default:'' }}"
-                                    data-department="{{ employee.department|default:'' }}">
-                                    <td>{{ forloop.counter }}</td>
-                                    <td>
-                                        <div class="user-cell">
-                                            <div class="user-avatar">{{ employee.full_name|slice:":2"|upper }}</div>
-                                            <span>{{ employee.full_name }}</span>
-                                        </div>
-                                    </td>
-                                    <td>{{ employee.employee_id|default:"Not Assigned" }}</td>
-                                    <td>{{ employee.official_email|default:employee.personal_email }}</td>
-                                    <td>{{ employee.department|default:"-" }}</td>
-                                    <td>{{ employee.designation|default:"-" }}</td>
-                                    <td>{{ employee.doj|date:"M d, Y"|default:"-" }}</td>
-                                   <td>
-                                        <a href="{% url 'employee_app:view_biodata' employee.pk %}">
-                                            <button class="action-icon-btn" title="View">👁️</button>
-                                        </a>
-                                        <a href="{% url 'employee_app:edit_biodata' employee.pk %}">
-                                            <button class="action-icon-btn" title="Edit">✏️</button>
-                                        </a>
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="8" style="text-align:center; padding:40px; color:#666;">
-                                        No approved employees yet.
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                        </div>
-                    </div>
-
-                    <!-- Pagination -->
-                    <div class="table-pagination">
-                        <button class="pagination-btn" onclick="previousPageBiodata()">← Previous</button>
-                        <span class="pagination-info"><span class="current-page">1</span> / <span
-                                class="total-pages">1</span></span>
-                        <button class="pagination-btn" onclick="nextPageBiodata()">Next →</button>
-                    </div>
+    <!-- Employees Table -->
+    <div class="table-container">
+      <div class="table-wrapper">
+        <table class="employees-biodata-table">
+          <thead>
+            <tr>
+              <th id="serial-no" style="width: 30px;">S.No</th>
+              <th>Employee Name</th>
+              <th>Employee ID</th>
+              <th>Email</th>
+              <th>Department</th>
+              <th>Position</th>
+              <th>Joining Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="employeesTableBody">
+            {% for employee in employees %}
+            <tr data-employee-name="{{ employee.first_name }} {{ employee.middle_name|default:'' }} {{ employee.last_name }}" 
+                data-employee-id="{{ employee.employee_id|default:'' }}"
+                data-department="{{ employee.department|default:'' }}">
+              <td>{{ forloop.counter }}</td>
+              <td>
+                <div class="user-cell">
+                  <div class="user-avatar">
+                    {{ employee.first_name|slice:":1" }}{{ employee.last_name|slice:":1" | upper }}
+                  </div>
+                  <span>
+                    {{ employee.first_name }} 
+                    {{ employee.middle_name|default:'' }} 
+                    {{ employee.last_name }}
+                  </span>
                 </div>
+              </td>
+              <td>{{ employee.employee_id|default:"Not Assigned" }}</td>
+              <td>{{ employee.official_email|default:employee.personal_email }}</td>
+              <td>{{ employee.department|default:"-" }}</td>
+              <td>{{ employee.designation|default:"-" }}</td>
+              <td>{{ employee.doj|date:"M d, Y"|default:"-" }}</td>
+              <td>
+                <a href="{% url 'employee_app:view_biodata' employee.pk %}">
+                  <button class="action-icon-btn" title="View">👁️</button>
+                </a>
+                <a href="{% url 'employee_app:edit_biodata' employee.pk %}">
+                  <button class="action-icon-btn" title="Edit">✏️</button>
+                </a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="8" style="text-align:center; padding:40px; color:#666;">
+                No approved employees yet.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-                <!-- Export Buttons At Bottom -->
-                <div class="export-buttons" style="margin-top: 25px; text-align: right;">
-                    <button class="btn btn-excel" style="
-                        padding: 10px 18px;
-                        background-color: #2e7d32;
-                        color: white;
-                        border: none;
-                        border-radius: 6px;
-                        cursor: pointer;
-                        margin-right: 10px;
-                        margin-bottom:5px;">
-                        📄 Export Excel
-                    </button>
+    <!-- Pagination -->
+    <div class="table-pagination">
+      <button class="pagination-btn" onclick="previousPageBiodata()">← Previous</button>
+      <span class="pagination-info"><span class="current-page">1</span> / <span class="total-pages">1</span></span>
+      <button class="pagination-btn" onclick="nextPageBiodata()">Next →</button>
+    </div>
 
-                    <button class="btn btn-pdf" style="
-                        padding: 10px 18px;
-                        background-color: #c62828;
-                        color: white;
-                        border: none;
-                        border-radius: 6px;
-                        cursor: pointer;">
-                        📕 Export PDF
-                    </button>
-                </div>
-            </div>
+    <!-- Export Buttons At Bottom -->
+    <div class="export-buttons" style="margin-top: 25px; text-align: right;">
+      <button class="btn btn-excel" style="padding: 10px 18px; background-color: #2e7d32; color: white; border: none; border-radius: 6px; cursor: pointer; margin-right: 10px; margin-bottom:5px;">
+        📄 Export Excel
+      </button>
+      <button class="btn btn-pdf" style="padding: 10px 18px; background-color: #c62828; color: white; border: none; border-radius: 6px; cursor: pointer;">
+        📕 Export PDF
+      </button>
+    </div>
+  </div>
+</div>
 
+<script>
+  // ============================================================
+  // UI INTERACTION ONLY - NO BACKEND LOGIC
+  // ============================================================
 
+  const pageData = {
+    currentPage: 1,
+    perPage: 20
+  };
 
-    
+  // Search employees (UI only)
+  function searchEmployeesTable() {
+    const searchTerm = document.getElementById('searchEmployees').value.toLowerCase();
+    const rows = document.querySelectorAll('#employeesTableBody tr');
 
-    <script>
-        // ============================================================
-        // UI INTERACTION ONLY - NO BACKEND LOGIC
-        // ============================================================
+    rows.forEach(row => {
+      const name = row.dataset.employeeName.toLowerCase();
+      const id = row.dataset.employeeId.toLowerCase();
+      const email = row.querySelector('td:nth-child(4)').textContent.toLowerCase(); // Email column
+      const matches = name.includes(searchTerm) || id.includes(searchTerm) || email.includes(searchTerm);
+      row.style.display = matches ? '' : 'none';
+    });
 
-        const pageData = {
-            currentPage: 1,
-            perPage: 20
-        };
+    // Update pagination after search
+    updatePaginationBiodata();
+  }
 
-        // Search employees (UI only)
-        function searchEmployeesTable() {
-            const searchTerm = document.getElementById('searchEmployees').value.toLowerCase();
-            const rows = document.querySelectorAll('#employeesTableBody tr');
+  // Filter by department (UI only)
+  function filterByDepartment() {
+    const selectedDept = document.getElementById('departmentFilter').value;
+    const rows = document.querySelectorAll('#employeesTableBody tr');
 
-            rows.forEach(row => {
-                const name = row.dataset.employeeName.toLowerCase();
-                const id = row.dataset.employeeId.toLowerCase();
-                const email = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
-                const matches = name.includes(searchTerm) || id.includes(searchTerm) || email.includes(searchTerm);
-                row.style.display = matches ? '' : 'none';
-            });
-        }
+    rows.forEach(row => {
+      const dept = row.dataset.department;
+      const matches = selectedDept === '' || dept === selectedDept;
+      row.style.display = matches ? '' : 'none';
+    });
 
-        // Filter by department (UI only)
-        function filterByDepartment() {
-            const selectedDept = document.getElementById('departmentFilter').value;
-            const rows = document.querySelectorAll('#employeesTableBody tr');
+    // Update pagination after filter
+    updatePaginationBiodata();
+  }
 
-            rows.forEach(row => {
-                const dept = row.dataset.department;
-                const matches = selectedDept === '' || dept === selectedDept;
-                row.style.display = matches ? '' : 'none';
-            });
-        }
+  // Update pagination (UI only)
+  function updatePaginationBiodata() {
+    const visibleRows = Array.from(document.querySelectorAll('#employeesTableBody tr'))
+      .filter(row => row.style.display !== 'none');
+    const totalPages = Math.ceil(visibleRows.length / pageData.perPage);
+    const start = (pageData.currentPage - 1) * pageData.perPage;
+    const end = start + pageData.perPage;
 
-        // Update pagination (UI only)
-        function updatePaginationBiodata() {
-            const visibleRows = Array.from(document.querySelectorAll('#employeesTableBody tr'))
-                .filter(row => row.style.display !== 'none');
-            const totalPages = Math.ceil(visibleRows.length / pageData.perPage);
-            const start = (pageData.currentPage - 1) * pageData.perPage;
-            const end = start + pageData.perPage;
+    visibleRows.forEach((row, index) => {
+      row.style.display = (index >= start && index < end) ? '' : 'none';
+    });
 
-            visibleRows.forEach((row, index) => {
-                row.style.display = (index >= start && index < end) ? '' : 'none';
-            });
+    document.querySelector('.current-page').textContent = pageData.currentPage;
+    document.querySelector('.total-pages').textContent = totalPages || 1;
+  }
 
-            document.querySelector('.current-page').textContent = pageData.currentPage;
-            document.querySelector('.total-pages').textContent = totalPages || 1;
-        }
+  function nextPageBiodata() {
+    const visibleRows = Array.from(document.querySelectorAll('#employeesTableBody tr'))
+      .filter(row => row.style.display !== 'none');
+    const totalPages = Math.ceil(visibleRows.length / pageData.perPage);
+    if (pageData.currentPage < totalPages) {
+      pageData.currentPage++;
+      updatePaginationBiodata();
+    }
+  }
 
-        function nextPageBiodata() {
-            const visibleRows = Array.from(document.querySelectorAll('#employeesTableBody tr'))
-                .filter(row => row.style.display !== 'none');
-            const totalPages = Math.ceil(visibleRows.length / pageData.perPage);
-            if (pageData.currentPage < totalPages) {
-                pageData.currentPage++;
-                updatePaginationBiodata();
-            }
-        }
+  function previousPageBiodata() {
+    if (pageData.currentPage > 1) {
+      pageData.currentPage--;
+      updatePaginationBiodata();
+    }
+  }
 
-        function previousPageBiodata() {
-            if (pageData.currentPage > 1) {
-                pageData.currentPage--;
-                updatePaginationBiodata();
-            }
-        }
-
-        
-
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function () {
-            updatePaginationBiodata();
-        });
-    </script>
+  // Initialize on page load
+  document.addEventListener('DOMContentLoaded', function () {
+    updatePaginationBiodata();
+  });
+</script>
 
 {% endblock %}

@@ -6,10 +6,12 @@ from django.http import HttpResponse
 from django.contrib.auth.hashers import make_password
 import openpyxl
 from openpyxl.styles import Font
+from django.urls import reverse
+from .utils import create_notification  
 
 from .models import CustomUser
 from employee_app.permission_defaults import ROLE_PERMISSIONS
-from employee_app.utils import has_permission
+from employee_app.utils import create_notification, has_permission
 
 def login_view(request):
     if request.user.is_authenticated:
@@ -48,6 +50,9 @@ def users_manager(request):
     return render(request, 'employee_app/users_manager.html', {'users': users})
 
 
+
+
+
 @login_required
 def create_user(request):
     if not has_permission(request.user, 'users', 'create'):
@@ -64,7 +69,7 @@ def create_user(request):
 
         permissions = ROLE_PERMISSIONS.get(role, {})
 
-        CustomUser.objects.create(
+        new_user = CustomUser.objects.create(
             email=email,
             full_name=request.POST.get('full_name'),
             phone=request.POST.get('phone'),
@@ -75,6 +80,17 @@ def create_user(request):
             password=make_password(request.POST.get('password')),
             is_active=(request.POST.get('status') == 'active')
         )
+
+        # === NOTIFICATION: New user created → notify admin & super_admin ===
+        for notifier in CustomUser.objects.filter(role__in=['admin', 'super_admin'], is_active=True):
+            link = reverse('employee_app:edit_user', args=[new_user.id])
+            create_notification(
+                recipient=notifier,
+                ntype='user_created',
+                title='New User Created',
+                message=f"User {new_user.email} ({new_user.get_role_display()}) was created by {request.user.get_full_name() or request.user.email}.",
+                link=request.build_absolute_uri(link)
+            )
 
         messages.success(request, f'User {email} created successfully.')
         return redirect('employee_app:users_manager')
@@ -101,6 +117,15 @@ def edit_user(request, user_id):
         user.permissions = ROLE_PERMISSIONS.get(user.role, {})
         user.save()
 
+        # === NOTIFICATION: User edited → notify ONLY the edited user ===
+        create_notification(
+            recipient=user,
+            ntype='user_updated',
+            title='Your Profile Was Updated',
+            message=f"Your account details were updated by {request.user.get_full_name() or request.user.email}.",
+            link=request.build_absolute_uri(reverse('employee_app:profile'))
+        )
+
         messages.success(request, 'User updated successfully.')
         return redirect('employee_app:users_manager')
 
@@ -118,7 +143,19 @@ def delete_user(request, user_id):
         if user == request.user:
             messages.error(request, "You cannot delete your own account.")
         else:
+            deleted_email = user.email
+            deleted_role = user.get_role_display()
             user.delete()
+
+            # === NOTIFICATION: User deleted → notify admin & super_admin ===
+            for notifier in CustomUser.objects.filter(role__in=['admin', 'super_admin'], is_active=True):
+                create_notification(
+                    recipient=notifier,
+                    ntype='user_deleted',
+                    title='User Deleted',
+                    message=f"User {deleted_email} ({deleted_role}) was deleted by {request.user.get_full_name() or request.user.email}.",
+                )
+
             messages.success(request, "User deleted successfully.")
 
     return redirect('employee_app:users_manager')
@@ -188,8 +225,8 @@ def projects(request):
 def profile(request):
     return render(request, 'employee_app/profile.html')
 
-def public_biodata_form(request):
-    return render(request, 'employee_app/public_biodata_form.html')
+# def public_biodata_form(request):
+#     return render(request, 'employee_app/public_biodata_form.html') 
 
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -273,118 +310,85 @@ def sign_out_all_devices(request):
 
 # Public Form
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.conf import settings
+from django.http import HttpResponse
+from django.contrib.auth.hashers import make_password
+import openpyxl
+from openpyxl.styles import Font
+
+from .models import CustomUser, BioDataRequest
+from .forms import BioDataForm, ReviewForm, EditForm
+from employee_app.permission_defaults import ROLE_PERMISSIONS
+from employee_app.utils import has_permission
 from django.core.mail import send_mail
-from .models import BioDataRequest
+from django.conf import settings
 
 def public_biodata_form(request):
-    form_data = {}
-    errors = {}
-
     if request.method == 'POST':
-        form_data = request.POST
+        form = BioDataForm(request.POST, request.FILES)
+        if form.is_valid():
+            work_exp = []
+            employers = request.POST.getlist('prev_employer[]')
+            designations = request.POST.getlist('prev_designation[]')
+            durations = request.POST.getlist('prev_duration[]')
+            emails = request.POST.getlist('prev_email[]')
+            cert_files = request.FILES.getlist('work_experience_cert[]')
 
-        # Required text fields
-        required_text = ['full_name', 'contact_number', 'personal_email', 'experience_type',
-                         'technical_skills', 'ssc_school', 'ssc_year', 'ssc_grade',
-                         'sslc_school', 'sslc_year', 'sslc_grade', 'ug_degree',
-                         'ug_institution', 'ug_year']
-        for field in required_text:
-            if not request.POST.get(field):
-                errors[field] = 'This field is required.'
+            for i in range(len(employers)):
+                if employers[i].strip():
+                    exp = {
+                        'employer': employers[i],
+                        'designation': designations[i],
+                        'duration': durations[i],
+                        'email': emails[i],
+                    }
 
-        # Required files
-        required_files = ['photo', 'resume', 'ssc_marksheet', 'sslc_marksheet', 'ug_documents']
-        for field in required_files:
-            if not request.FILES.get(field):
-                errors[field] = 'This file is required.'
+                    if i < len(cert_files) and cert_files[i]:
+                        cert_file = cert_files[i]
+                        from django.core.files.storage import default_storage
+                        path = default_storage.save(
+                            f'biodata/certs/{cert_file.name}',
+                            cert_file
+                        )
 
-        # File size & type
-        max_size = 5 * 1024 * 1024
-        allowed_types = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png']
-        for key, file in request.FILES.items():
-            if file.size > max_size:
-                errors[key] = 'File too large (max 5MB)'
-            if file.content_type not in allowed_types:
-                errors[key] = 'Only PDF, JPG, JPEG, PNG allowed'
+                        # ✅ ONLY FIX IS HERE
+                        exp['certificate_path'] = default_storage.url(path)
 
-        if errors:
-            messages.error(request, 'Please correct the errors below.')
-        else:
-            try:
-                work_exp = []
-                employers = request.POST.getlist('prev_employer[]')
-                designations = request.POST.getlist('prev_designation[]')
-                durations = request.POST.getlist('prev_duration[]')
-                emails = request.POST.getlist('prev_email[]')
-                for i in range(len(employers)):
-                    if employers[i].strip():
-                        work_exp.append({
-                            'employer': employers[i],
-                            'designation': designations[i],
-                            'duration': durations[i],
-                            'email': emails[i],
-                        })
+                    work_exp.append(exp)
 
-                BioDataRequest.objects.create(
-                    full_name=request.POST['full_name'],
-                    dob=request.POST.get('dob') or None,
-                    gender=request.POST.get('gender', ''),
-                    marital_status=request.POST.get('marital_status', ''),
-                    contact_number=request.POST['contact_number'],
-                    emergency_contact=request.POST.get('emergency_contact', ''),
-                    personal_email=request.POST['personal_email'],
-                    address=request.POST.get('address', ''),
-                    aadhar_no=request.POST.get('aadhar_no', ''),
-                    pan_no=request.POST.get('pan_no', ''),
-                    bank_details=request.POST.get('bank_details', ''),
-                    experience_type=request.POST['experience_type'],
-                    photo=request.FILES['photo'],
-                    resume=request.FILES['resume'],
-                    aadhar_card=request.FILES.get('aadhar_card'),
-                    pan_card=request.FILES.get('pan_card'),
-                    ssc_school=request.POST['ssc_school'],
-                    ssc_year=request.POST['ssc_year'],
-                    ssc_grade=request.POST['ssc_grade'],
-                    ssc_marksheet=request.FILES['ssc_marksheet'],
-                    sslc_school=request.POST['sslc_school'],
-                    sslc_year=request.POST['sslc_year'],
-                    sslc_grade=request.POST['sslc_grade'],
-                    sslc_marksheet=request.FILES['sslc_marksheet'],
-                    ug_degree=request.POST['ug_degree'],
-                    ug_institution=request.POST['ug_institution'],
-                    ug_year=request.POST['ug_year'],
-                    ug_documents=request.FILES['ug_documents'],
-                    pg_degree=request.POST.get('pg_degree', ''),
-                    pg_institution=request.POST.get('pg_institution', ''),
-                    pg_year=request.POST.get('pg_year') or None,
-                    pg_documents=request.FILES.get('pg_documents'),
-                    cert_course=request.POST.get('cert_course', ''),
-                    cert_institution=request.POST.get('cert_institution', ''),
-                    cert_year=request.POST.get('cert_year') or None,
-                    cert_document=request.FILES.get('cert_document'),
-                    work_experience=work_exp,
-                    technical_skills=request.POST['technical_skills'],
-                    soft_skills=request.POST.get('soft_skills', ''),
-                    reference_name=request.POST.get('reference_name', ''),
-                    reference_contact=request.POST.get('reference_contact', ''),
+            bio = form.save(commit=False)
+            bio.work_experience = work_exp
+            bio.save()
+
+            # Notify admin and super_admin about new submission
+            for user in CustomUser.objects.filter(role__in=['admin', 'super_admin'], is_active=True):
+                link = reverse('employee_app:review_biodata_detail', args=[bio.pk])
+                create_notification(
+                    recipient=user,
+                    ntype='biodata_new',
+                    title='New BioData Submission',
+                    message=f"{bio.first_name} {bio.last_name} submitted a new bio data request.",
+                    link=request.build_absolute_uri(link)
                 )
 
-                messages.success(request, 'Bio data submitted successfully! Awaiting HR review.')
-                return redirect('employee_app:public_biodata_form')
+            messages.success(
+                request,
+                'Bio data submitted successfully! Awaiting HR review.'
+            )
+            return redirect('employee_app:public_biodata_form')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = BioDataForm()
 
-            except Exception as e:
-                if "UNIQUE constraint failed" in str(e):
-                    messages.error(request, 'This email has already been used for a submission.')
-                else:
-                    messages.error(request, 'An error occurred. Please try again.')
+    return render(
+        request,
+        'employee_app/public_biodata_form.html',
+        {'form': form}
+    )
 
-    return render(request, 'employee_app/public_biodata_form.html', {
-        'form_data': form_data,
-        'errors': errors,
-    })
 
 @login_required
 def pending_requests(request):
@@ -396,78 +400,155 @@ def review_biodata_detail(request, pk):
     bio = get_object_or_404(BioDataRequest, pk=pk)
 
     if request.method == 'POST':
-        action = request.POST.get('action')
+        form = ReviewForm(request.POST, instance=bio)
+        if form.is_valid():
+            action = request.POST.get('action')
 
-        if action == 'approve':
-            bio.employee_id = request.POST['employee_id']
-            bio.official_email = request.POST['official_email']
-            bio.designation = request.POST['designation']
-            bio.department = request.POST['department']
-            bio.doj = request.POST['doj']
-            bio.work_mode = request.POST.get('work_mode', '')
-            bio.status = 'approved'
-            bio.approved_by = request.user
+            bio = form.save(commit=False)
+
+            if action == 'approve':
+                # HR details are already saved by form.save()
+                bio.status = 'approved'
+                bio.approved_by = request.user
+                messages.success(request, 'Employee approved and details saved successfully!')
+
+                # Send detailed approval email with HR info
+                subject = 'Your Application Has Been Approved!'
+                message = f"""
+                        Dear {bio.first_name} {bio.last_name},
+
+                        Congratulations! Your bio data submission has been approved.
+
+                        Employee Details:
+                        - Employee ID: {bio.employee_id}
+                        - Official Email: {bio.official_email}
+                        - Designation: {bio.designation}
+                        - Department: {bio.department}
+                        - Date of Joining: {bio.doj.strftime('%d %B %Y') if bio.doj else 'TBD'}
+                        - Work Mode: {bio.work_mode or 'Not specified'}
+
+                        Please check your official email for further instructions.
+
+                        Best regards,
+                        HR Team - STACKLY
+                        """
+                send_mail(subject, message.strip(), settings.DEFAULT_FROM_EMAIL, [bio.personal_email])
+
+                # === NOTIFICATION: BioData approved → notify admin & super_admin ===
+                for notifier in CustomUser.objects.filter(role__in=['admin', 'super_admin'], is_active=True):
+                    link = reverse('employee_app:view_biodata', args=[bio.pk])
+                    create_notification(
+                        recipient=notifier,
+                        ntype='biodata_approved',
+                        title='BioData Approved',
+                        message=f"{bio.first_name} {bio.last_name}'s request was approved by {request.user.get_full_name() or request.user.email}.",
+                        link=request.build_absolute_uri(link)
+                    )
+
+            elif action == 'reject':
+                bio.status = 'rejected'
+                messages.success(request, 'Application rejected successfully.')
+                send_mail(
+                    'Application Rejected',
+                    f'Reason: {bio.reject_reason}',
+                    settings.DEFAULT_FROM_EMAIL,
+                    [bio.personal_email]
+                )
+
+                # === NOTIFICATION: BioData rejected → notify admin & super_admin ===
+                for notifier in CustomUser.objects.filter(role__in=['admin', 'super_admin'], is_active=True):
+                    link = reverse('employee_app:review_biodata_detail', args=[bio.pk])
+                    create_notification(
+                        recipient=notifier,
+                        ntype='biodata_rejected',
+                        title='BioData Rejected',
+                        message=f"{bio.first_name} {bio.last_name}'s request was rejected by {request.user.get_full_name() or request.user.email}. Reason: {bio.reject_reason}",
+                        link=request.build_absolute_uri(link)
+                    )
+
             bio.save()
-            messages.success(request, 'Employee approved successfully!')
-            send_mail('Application Approved', 'Your bio data has been approved.', settings.DEFAULT_FROM_EMAIL, [bio.personal_email])
+            return redirect('employee_app:pending_requests')
 
-        elif action == 'reject':
-            bio.status = 'rejected'
-            bio.reject_reason = request.POST['reject_reason']
-            bio.save()
-            messages.success(request, 'Application rejected.')
-            send_mail('Application Rejected', f'Reason: {bio.reject_reason}', settings.DEFAULT_FROM_EMAIL, [bio.personal_email])
+    else:
+        form = ReviewForm(instance=bio)
 
-        return redirect('employee_app:pending_requests')
+    return render(request, 'employee_app/review_biodata_detail.html', {'bio': bio, 'form': form})
 
-    return render(request, 'employee_app/review_biodata_detail.html', {'bio': bio})
 
 @login_required
 def biodata_list(request):
     employees = BioDataRequest.objects.filter(status='approved').order_by('-doj')
     return render(request, 'employee_app/biodata.html', {'employees': employees})
 
-
-# View Bio Data (Read-Only)
 @login_required
 def view_biodata(request, pk):
     bio = get_object_or_404(BioDataRequest, pk=pk, status='approved')
     return render(request, 'employee_app/view_biodata.html', {'bio': bio})
 
-# Edit Bio Data (HR can edit everything)
 @login_required
 def edit_biodata(request, pk):
     bio = get_object_or_404(BioDataRequest, pk=pk, status='approved')
 
     if request.method == 'POST':
-        # Update all fields
-        bio.full_name = request.POST['full_name']
-        bio.dob = request.POST.get('dob') or None
-        bio.gender = request.POST.get('gender', '')
-        bio.marital_status = request.POST.get('marital_status', '')
-        bio.contact_number = request.POST['contact_number']
-        bio.emergency_contact = request.POST.get('emergency_contact', '')
-        bio.personal_email = request.POST['personal_email']
-        bio.address = request.POST.get('address', '')
-        bio.aadhar_no = request.POST.get('aadhar_no', '')
-        bio.pan_no = request.POST.get('pan_no', '')
-        bio.bank_details = request.POST.get('bank_details', '')
-        bio.experience_type = request.POST['experience_type']
-        bio.technical_skills = request.POST['technical_skills']
-        bio.soft_skills = request.POST.get('soft_skills', '')
-        bio.reference_name = request.POST.get('reference_name', '')
-        bio.reference_contact = request.POST.get('reference_contact', '')
+        form = EditForm(request.POST, request.FILES, instance=bio)
+        if form.is_valid():
+            form.save()
+            
+            # === NOTIFICATION: BioData edited → notify admin & super_admin ===
+            for notifier in CustomUser.objects.filter(role__in=['admin', 'super_admin'], is_active=True):
+                link = reverse('employee_app:view_biodata', args=[bio.pk])
+                create_notification(
+                    recipient=notifier,
+                    ntype='biodata_updated',
+                    title='Employee BioData Updated',
+                    message=f"BioData of {bio.first_name} {bio.last_name} (ID: {bio.employee_id or 'N/A'}) was updated by {request.user.get_full_name() or request.user.email}.",
+                    link=request.build_absolute_uri(link)
+                )
 
-        # HR fields
-        bio.employee_id = request.POST['employee_id']
-        bio.official_email = request.POST['official_email']
-        bio.designation = request.POST['designation']
-        bio.department = request.POST['department']
-        bio.doj = request.POST['doj']
-        bio.work_mode = request.POST.get('work_mode', '')
+            messages.success(request, 'Employee bio data updated successfully!')
+            return redirect('view_biodata', pk=bio.pk)
+    else:
+        form = EditForm(instance=bio)
 
-        bio.save()
-        messages.success(request, 'Employee bio data updated successfully!')
-        return redirect('employee_app:view_biodata', pk=bio.pk)
+    return render(request, 'employee_app/edit_biodata.html', {'form': form, 'bio': bio})
 
-    return render(request, 'employee_app/edit_biodata.html', {'bio': bio})
+
+@login_required
+def delete_biodata(request, pk):
+    if not has_permission(request.user, 'biodata', 'delete'):
+        return HttpResponse('Access Denied', status=403)
+
+    bio = get_object_or_404(BioDataRequest, pk=pk, status='approved')
+
+    if request.method == 'POST':
+        deleted_name = f"{bio.first_name} {bio.last_name}"
+        deleted_email = bio.personal_email
+        bio.delete()
+
+        # === NOTIFICATION: BioData deleted → notify admin & super_admin ===
+        for notifier in CustomUser.objects.filter(role__in=['admin', 'super_admin'], is_active=True):
+            create_notification(
+                recipient=notifier,
+                ntype='biodata_deleted',
+                title='Employee BioData Deleted',
+                message=f"BioData of {deleted_name} ({deleted_email}) was deleted by {request.user.get_full_name() or request.user.email}.",
+            )
+
+        messages.success(request, f"BioData of {deleted_name} deleted successfully.")
+        return redirect('employee_app:biodata_list')
+
+    # If GET request → show confirmation page (optional but recommended)
+    return render(request, 'employee_app/delete_biodata_confirm.html', {'bio': bio})
+
+from django.http import JsonResponse
+
+@login_required
+@require_POST
+def mark_all_read(request):
+    request.user.notifications.update(is_read=True)
+    return JsonResponse({'status': 'ok'})
+
+@login_required
+def notifications_all(request):
+    notifs = request.user.notifications.all()
+    return render(request, 'employee_app/notifications_all.html', {'notifications': notifs})

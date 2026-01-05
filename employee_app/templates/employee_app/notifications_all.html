@@ -1,0 +1,19 @@
+{% extends 'employee_app/base.html' %}
+{% block page_title %}All Notifications{% endblock %}
+{% block content %}
+<div class="content-area">
+    <div class="content-card">
+        <h2>All Notifications</h2>
+        {% for n in notifications %}
+            <div class="notification-item {% if not n.is_read %}unread{% endif %}">
+                <strong>{{ n.title }}</strong><br>
+                {{ n.message }}<br>
+                <small>{{ n.created_at|timesince }} ago</small>
+                {% if n.link %}<a href="{{ n.link }}">View →</a>{% endif %}
+            </div>
+        {% empty %}
+            <p>No notifications yet.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
