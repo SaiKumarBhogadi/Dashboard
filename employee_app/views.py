@@ -1,3 +1,5 @@
+
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -475,10 +477,37 @@ def review_biodata_detail(request, pk):
     return render(request, 'employee_app/review_biodata_detail.html', {'bio': bio, 'form': form})
 
 
+from django.db.models import Q
+
 @login_required
 def biodata_list(request):
     employees = BioDataRequest.objects.filter(status='approved').order_by('-doj')
-    return render(request, 'employee_app/biodata.html', {'employees': employees})
+
+    # Get filter parameters from URL
+    search = request.GET.get('search', '').strip()
+    department = request.GET.get('department', '').strip()
+
+    # Apply search filter (name, email, employee_id)
+    if search:
+        employees = employees.filter(
+            Q(first_name__icontains=search) |
+            Q(middle_name__icontains=search) |
+            Q(last_name__icontains=search) |
+            Q(employee_id__icontains=search) |
+            Q(official_email__icontains=search) |
+            Q(personal_email__icontains=search)
+        )
+
+    # Apply department filter
+    if department:
+        employees = employees.filter(department=department)
+
+    context = {
+        'employees': employees,
+        'current_search': search,           # to keep input filled
+        'current_department': department,   # to keep dropdown selected
+    }
+    return render(request, 'employee_app/biodata.html', context)
 
 @login_required
 def view_biodata(request, pk):
@@ -539,6 +568,105 @@ def delete_biodata(request, pk):
 
     # If GET request → show confirmation page (optional but recommended)
     return render(request, 'employee_app/delete_biodata_confirm.html', {'bio': bio})
+
+
+from datetime import datetime
+from openpyxl.styles import Font, Alignment
+@login_required
+def export_biodata_excel(request):
+    if not has_permission(request.user, 'biodata', 'export'):
+        return HttpResponse('Access Denied', status=403)
+
+    employees = BioDataRequest.objects.filter(status='approved').order_by('-doj')
+
+    # Apply the same filters as the list view
+    search = request.GET.get('search', '').strip()
+    department = request.GET.get('department', '').strip()
+
+    if search:
+        employees = employees.filter(
+            Q(first_name__icontains=search) |
+            Q(middle_name__icontains=search) |
+            Q(last_name__icontains=search) |
+            Q(employee_id__icontains=search) |
+            Q(official_email__icontains=search) |
+            Q(personal_email__icontains=search)
+        )
+
+    if department:
+        employees = employees.filter(department=department)
+
+    # Now build Excel with filtered employees
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Approved Employees"
+
+    columns = [
+        'ID', 'First Name', 'Middle Name', 'Last Name', 'Personal Email', 'Contact Number',
+        'Employee ID', 'Official Email', 'Designation', 'Department', 'DOJ', 'Work Mode',
+        'Experience Type', 'Post Applied For', 'Blood Group',
+        'Address', 'Aadhar No', 'PAN No',
+        'Bank Name', 'Branch', 'Account No', 'Account Name', 'IFSC',
+        'Technical Skills', 'Created At'
+    ]
+    ws.append(columns)
+
+    for col_num, cell in enumerate(ws[1], start=1):
+        cell.font = Font(bold=True)
+        cell.alignment = Alignment(horizontal='center')
+
+    for emp in employees:
+        address = f"{emp.address_line1 or ''} {emp.address_line2 or ''}, {emp.city or ''}, {emp.state or ''} {emp.postal_code or ''}, {emp.get_country_display() or ''}".strip()
+        ws.append([
+            emp.id,
+            emp.first_name,
+            emp.middle_name or '-',
+            emp.last_name,
+            emp.personal_email,
+            emp.contact_number,
+            emp.employee_id or '-',
+            emp.official_email or '-',
+            emp.designation or '-',
+            emp.department or '-',
+            emp.doj.strftime('%Y-%m-%d') if emp.doj else '-',
+            emp.work_mode or '-',
+            emp.get_experience_type_display(),
+            emp.get_post_applied_for_display() or '-',
+            emp.blood_group or '-',
+            address or '-',
+            emp.aadhar_no or '-',
+            emp.pan_no or '-',
+            emp.bank_name or '-',
+            emp.bank_branch or '-',
+            emp.account_number or '-',
+            emp.account_name or '-',
+            emp.ifsc_code or '-',
+            emp.technical_skills,
+            emp.created_at.strftime('%Y-%m-%d %H:%M'),
+        ])
+
+    # Auto width + freeze header (same as before)
+    for col in ws.columns:
+        max_length = 0
+        column = col[0].column_letter
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        ws.column_dimensions[column].width = max_length + 2
+    ws.freeze_panes = 'A2'
+
+    today = datetime.now().strftime('%Y-%m-%d')
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename="approved_employees_{today}.xlsx"'
+    wb.save(response)
+    return response
+
+
 
 from django.http import JsonResponse
 

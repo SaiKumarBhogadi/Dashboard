@@ -34,6 +34,7 @@ urlpatterns = [
     path('biodata/view/<int:pk>/', views.view_biodata, name='view_biodata'),
     path('biodata/edit/<int:pk>/', views.edit_biodata, name='edit_biodata'),
     path('biodata/delete/<int:pk>/', views.delete_biodata, name='delete_biodata'),
+    path('biodata/export/', views.export_biodata_excel, name='export_biodata_excel'),
 
     path('settings/', views.app_settings, name='settings'),
     path('api/settings/change_password/', views.change_password, name='change_password'),

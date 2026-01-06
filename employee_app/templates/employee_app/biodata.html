@@ -15,15 +15,21 @@
 
     <!-- Search and Filters -->
     <div class="list-controls">
-      <input type="text" id="searchEmployees" placeholder="Search by name, email, or ID..." class="search-input" onkeyup="searchEmployeesTable()">
-      <select id="departmentFilter" class="role-filter" onchange="filterByDepartment()">
-        <option value="">All Departments</option>
-        <option value="Software Development">Software Development</option>
-        <option value="HR">HR</option>
-        <option value="Finance">Finance</option>
-        <option value="Operations">Operations</option>
-        <option value="Training">Training & Development</option>
-      </select>
+     
+    <input type="text" id="searchEmployees" value="{{ current_search }}" 
+           placeholder="Search by name, email, or ID..." class="search-input" 
+           onkeyup="if(event.key === 'Enter') filterByDepartment();">
+
+    <select id="departmentFilter" class="role-filter" onchange="filterByDepartment()">
+        <option value="" {% if not current_department %}selected{% endif %}>All Departments</option>
+        <option value="Software Development" {% if current_department == 'Software Development' %}selected{% endif %}>Software Development</option>
+        <option value="HR" {% if current_department == 'HR' %}selected{% endif %}>HR</option>
+        <option value="Finance" {% if current_department == 'Finance' %}selected{% endif %}>Finance</option>
+        <option value="Operations" {% if current_department == 'Operations' %}selected{% endif %}>Operations</option>
+        <option value="Training & Development" {% if current_department == 'Training & Development' %}selected{% endif %}>Training & Development</option>
+    </select>
+
+
       <a href="{% url 'employee_app:pending_requests' %}" class="btn btn-primary" style="text-decoration: none;">View Requests</a>
     </div>
 
@@ -96,9 +102,9 @@
 
     <!-- Export Buttons At Bottom -->
     <div class="export-buttons" style="margin-top: 25px; text-align: right;">
-      <button class="btn btn-excel" style="padding: 10px 18px; background-color: #2e7d32; color: white; border: none; border-radius: 6px; cursor: pointer; margin-right: 10px; margin-bottom:5px;">
+     <a href="{% url 'employee_app:export_biodata_excel' %}?search={{ current_search }}&department={{ current_department }}"><button class="btn btn-excel" style="padding: 10px 18px; background-color: #2e7d32; color: white; border: none; border-radius: 6px; cursor: pointer; margin-right: 10px; margin-bottom:5px;">
         📄 Export Excel
-      </button>
+      </button></a>
       <button class="btn btn-pdf" style="padding: 10px 18px; background-color: #c62828; color: white; border: none; border-radius: 6px; cursor: pointer;">
         📕 Export PDF
       </button>
@@ -116,37 +122,27 @@
     perPage: 20
   };
 
-  // Search employees (UI only)
-  function searchEmployeesTable() {
-    const searchTerm = document.getElementById('searchEmployees').value.toLowerCase();
-    const rows = document.querySelectorAll('#employeesTableBody tr');
+ 
+  
+function filterByDepartment() {
+    const search = document.getElementById('searchEmployees').value.trim();
+    const dept = document.getElementById('departmentFilter').value;
+    
+    let url = new URL(window.location);
+    if (search) url.searchParams.set('search', search);
+    else url.searchParams.delete('search');
+    if (dept) url.searchParams.set('department', dept);
+    else url.searchParams.delete('department');
+    
+    window.location.href = url.toString();
+}
 
-    rows.forEach(row => {
-      const name = row.dataset.employeeName.toLowerCase();
-      const id = row.dataset.employeeId.toLowerCase();
-      const email = row.querySelector('td:nth-child(4)').textContent.toLowerCase(); // Email column
-      const matches = name.includes(searchTerm) || id.includes(searchTerm) || email.includes(searchTerm);
-      row.style.display = matches ? '' : 'none';
-    });
-
-    // Update pagination after search
-    updatePaginationBiodata();
-  }
-
-  // Filter by department (UI only)
-  function filterByDepartment() {
-    const selectedDept = document.getElementById('departmentFilter').value;
-    const rows = document.querySelectorAll('#employeesTableBody tr');
-
-    rows.forEach(row => {
-      const dept = row.dataset.department;
-      const matches = selectedDept === '' || dept === selectedDept;
-      row.style.display = matches ? '' : 'none';
-    });
-
-    // Update pagination after filter
-    updatePaginationBiodata();
-  }
+// Optional: Search on Enter key
+document.getElementById('searchEmployees').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        filterByDepartment();
+    }
+});
 
   // Update pagination (UI only)
   function updatePaginationBiodata() {
