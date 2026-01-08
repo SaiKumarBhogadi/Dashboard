@@ -1,0 +1,147 @@
+{# assignment_detail.html #}
+{% extends 'employee_app/base.html' %}
+
+{% block page_title %}Assignment Details{% endblock %}
+
+{% block content %}
+<div class="content-area">
+  <div class="content-card">
+    <div class="card-header">
+      <h2>Assignment Details: Python Basics Project</h2>
+      <p class="card-subtitle">Complete information about this assignment</p>
+      <div class="header-action">
+        <a href="#" class="btn btn-primary">Edit Assignment</a>
+        <button class="btn btn-danger">Delete Assignment</button>
+      </div>
+    </div>
+
+    <!-- Basic Assignment Info -->
+    <div class="section-block">
+      <div class="section-header">
+        <h3>Assignment Information</h3>
+      </div>
+      <div class="profile-v2-right">
+        <div class="pv-section">
+          <div class="pv-row">
+            <span>Title</span>
+            <span>Python Basics Project</span>
+          </div>
+          <div class="pv-row">
+            <span>Batch</span>
+            <span>Python Full Stack - Batch 2026-A</span>
+          </div>
+          <div class="pv-row">
+            <span>Related Session</span>
+            <span>Python Fundamentals</span>
+          </div>
+          <div class="pv-row">
+            <span>Due Date</span>
+            <span>15 Jan 2026</span>
+          </div>
+          <div class="pv-row">
+            <span>Max Score</span>
+            <span>100</span>
+          </div>
+          <div class="pv-row">
+            <span>Status</span>
+            <span><span class="status-badge pending">Pending</span></span>
+          </div>
+          <div class="pv-row">
+            <span>Description</span>
+            <span>Create a simple command-line application that manages a to-do list. Requirements: Add tasks, remove tasks, list tasks, mark as completed.</span>
+          </div>
+          <div class="pv-row">
+            <span>Rubric / Grading Criteria</span>
+            <span>Functionality: 60%, Code Quality: 20%, Documentation: 20%</span>
+          </div>
+          <div class="pv-row">
+            <span>Submission Format</span>
+            <span>Zip file with .py scripts and README.md</span>
+          </div>
+          <div class="pv-row">
+            <span>Submissions Received</span>
+            <span>15/22 (68%)</span>
+          </div>
+          <div class="pv-row">
+            <span>Average Score</span>
+            <span>78/100</span>
+          </div>
+          <div class="pv-row">
+            <span>Created By</span>
+            <span>Rajesh Kumar (rajesh.kumar@company.com)</span>
+          </div>
+          <div class="pv-row">
+            <span>Created Date</span>
+            <span>05 Jan 2026</span>
+          </div>
+          <div class="pv-row">
+            <span>Last Updated</span>
+            <span>10 Jan 2026</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submissions List -->
+    <div class="section-block">
+      <div class="section-header">
+        <h3>Employee Submissions</h3>
+        <a href="#" class="btn btn-secondary">Grade All</a>
+      </div>
+      <div class="table-container">
+        <table class="employees-biodata-table">
+          <thead>
+            <tr>
+              <th>Employee Name</th>
+              <th>Email</th>
+              <th>Submitted On</th>
+              <th>Score</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Sai Kumar</td>
+              <td>sai.kumar@company.com</td>
+              <td>12 Jan 2026, 2:30 PM</td>
+              <td>85/100</td>
+              <td><span class="status-badge completed">Graded</span></td>
+              <td>
+                <a href="#" class="action-icon-btn" title="View Submission">👁️</a>
+                <a href="#" class="action-icon-btn" title="Grade">✏️</a>
+              </td>
+            </tr>
+            <tr>
+              <td>Arjun Patel</td>
+              <td>arjun.patel@company.com</td>
+              <td>Not Submitted</td>
+              <td>N/A</td>
+              <td><span class="status-badge pending">Pending</span></td>
+              <td>
+                <a href="#" class="action-icon-btn" title="Remind">📧</a>
+              </td>
+            </tr>
+            <tr>
+              <td>Neha Singh</td>
+              <td>neha.singh@company.com</td>
+              <td>14 Jan 2026, 11:00 AM</td>
+              <td>92/100</td>
+              <td><span class="status-badge completed">Graded</span></td>
+              <td>
+                <a href="#" class="action-icon-btn" title="View Submission">👁️</a>
+                <a href="#" class="action-icon-btn" title="Grade">✏️</a>
+              </td>
+            </tr>
+            <!-- More submissions... -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <a href="" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

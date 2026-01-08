@@ -1,3 +1,4 @@
+
 from django.urls import path
 from employee_app.views import (
     login_view, logout_view, users_manager,
@@ -23,6 +24,7 @@ urlpatterns = [
 
     
     path('training/', views.training, name='training'),
+    path('training/add/', views.add_trainee, name='add_trainee'), 
     path('projects/', views.projects, name='projects'),
     path('profile/', views.profile, name='profile'),
 
@@ -42,4 +44,16 @@ urlpatterns = [
 
     path('notifications/mark-all-read/', views.mark_all_read, name='mark_all_read'),
     path('notifications/all/', views.notifications_all, name='notifications_all'),
+
+
+      
+    path('batch-form/', views.batch_form, name='create_batch'),
+    path('batch-details/', views.batch_details, name='batch_details'),
+    path('batch-edit/', views.edit_batch, name='edit_batch'),
+    path('session-form/', views.session_form, name='create_session'),
+    path('session-edit/', views.edit_session, name='edit_session'),
+    path('session-details/', views.session_details, name='session_details'),
+    path('assignment-form/', views.assignment_form, name='create_assignment'),
+    path('assignment-edit/', views.edit_assignment, name='edit_assignment'),
+    path('assignment-details/', views.assignment_details, name='assignment_details'),
 ]

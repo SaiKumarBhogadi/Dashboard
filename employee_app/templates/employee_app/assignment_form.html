@@ -1,0 +1,123 @@
+{# assignment_add.html - Add New Assignment #}
+{% extends 'employee_app/base.html' %}
+
+{% block page_title %}Add New Assignment{% endblock %}
+
+{% block content %}
+<div class="content-area">
+  <div class="content-card">
+    <div class="card-header">
+      <h2>Add New Assignment</h2>
+      <p class="card-subtitle">Create a new assignment with complete details and reference materials</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="biodata-form">
+      {% csrf_token %}
+
+      <div class="form-section">
+        <h3 class="section-title">Assignment Information</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="id_title">Assignment Title <span class="text-danger">*</span></label>
+            <input type="text" name="title" id="id_title" class="form-control" 
+                   placeholder="e.g. Build a To-Do List Application" required>
+          </div>
+          <div class="form-group">
+            <label for="id_batch">Batch <span class="text-danger">*</span></label>
+            <select name="batch" id="id_batch" class="form-control" required>
+              <option value="">--- Select Batch ---</option>
+              <option value="1">Python Full Stack - Batch 2026-A</option>
+              <option value="2">React & Node.js - Batch 2026-B</option>
+              <option value="3">Data Science Bootcamp - Batch 2025-D</option>
+              <option value="4">DevOps Essentials - Batch 2026-C</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="id_session">Related Session (optional)</label>
+            <select name="session" id="id_session" class="form-control">
+              <option value="">--- No specific session ---</option>
+              <option value="1">Python Fundamentals</option>
+              <option value="2">OOP in Python</option>
+              <option value="3">Django Models & Views</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="id_due_date">Due Date <span class="text-danger">*</span></label>
+            <input type="date" name="due_date" id="id_due_date" class="form-control" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="id_max_score">Maximum Score</label>
+            <input type="number" name="max_score" id="id_max_score" class="form-control" 
+                   min="1" value="100" placeholder="e.g. 100">
+          </div>
+          <div class="form-group">
+            <label for="id_status">Status</label>
+            <select name="status" id="id_status" class="form-control">
+              <option value="pending" selected>Pending</option>
+              <option value="in_progress">In Progress</option>
+              <option value="graded">Graded</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group full-width">
+            <label for="id_description">Description / Instructions <span class="text-danger">*</span></label>
+            <textarea name="description" id="id_description" class="form-control" rows="8" required
+                      placeholder="Provide detailed task requirements, objectives, expected deliverables, and submission guidelines..."></textarea>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group full-width">
+            <label for="id_rubric">Grading Rubric (optional)</label>
+            <textarea name="rubric" id="id_rubric" class="form-control" rows="6"
+                      placeholder="e.g. 
+Functionality: 60 points
+Code Quality & Structure: 20 points
+Documentation & README: 10 points
+UI/UX (if applicable): 10 points"></textarea>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group full-width">
+            <label for="id_submission_format">Submission Format Guidelines</label>
+            <textarea name="submission_format" id="id_submission_format" class="form-control" rows="4"
+                      placeholder="e.g. Submit a ZIP file containing all source code, a README.md with instructions, and screenshots of output."></textarea>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group full-width">
+            <label for="id_reference_files">Reference Files / Starter Code (optional)</label>
+            <input type="file" name="reference_files" id="id_reference_files" class="form-control" multiple 
+                   accept=".zip,.pdf,.py,.js,.html,.css,.xlsx">
+            <small class="help-text">Upload starter templates, datasets, sample code, reference documents, etc.</small>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group full-width">
+            <label for="id_notes">Additional Notes</label>
+            <textarea name="notes" id="id_notes" class="form-control" rows="4"
+                      placeholder="Any special instructions, late submission policy, collaboration rules, etc."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Create Assignment</button>
+        <a href="" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

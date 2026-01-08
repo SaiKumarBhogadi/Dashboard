@@ -1,0 +1,126 @@
+{# assignment_edit.html - Edit Existing Assignment #}
+{% extends 'employee_app/base.html' %}
+
+{% block page_title %}Edit Assignment{% endblock %}
+
+{% block content %}
+<div class="content-area">
+  <div class="content-card">
+    <div class="card-header">
+      <h2>Edit Assignment: Python Basics Project</h2>
+      <p class="card-subtitle">Update assignment details, instructions, and materials</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="biodata-form">
+      {% csrf_token %}
+
+      <div class="form-section">
+        <h3 class="section-title">Assignment Information</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="id_title">Assignment Title <span class="text-danger">*</span></label>
+            <input type="text" name="title" id="id_title" class="form-control" 
+                   value="Python Basics Project" required>
+          </div>
+          <div class="form-group">
+            <label for="id_batch">Batch <span class="text-danger">*</span></label>
+            <select name="batch" id="id_batch" class="form-control" required>
+              <option value="">--- Select Batch ---</option>
+              <option value="1" selected>Python Full Stack - Batch 2026-A</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="id_session">Related Session (optional)</label>
+            <select name="session" id="id_session" class="form-control">
+              <option value="">--- No specific session ---</option>
+              <option value="1" selected>Python Fundamentals</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="id_due_date">Due Date <span class="text-danger">*</span></label>
+            <input type="date" name="due_date" id="id_due_date" class="form-control" value="2026-01-15" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="id_max_score">Maximum Score</label>
+            <input type="number" name="max_score" id="id_max_score" class="form-control" 
+                   min="1" value="100">
+          </div>
+          <div class="form-group">
+            <label for="id_status">Status</label>
+            <select name="status" id="id_status" class="form-control">
+              <option value="pending">Pending</option>
+              <option value="in_progress" selected>In Progress</option>
+              <option value="graded">Graded</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group full-width">
+            <label for="id_description">Description / Instructions <span class="text-danger">*</span></label>
+            <textarea name="description" id="id_description" class="form-control" rows="8" required>Create a command-line To-Do List application in Python with the following features:
+- Add new tasks with title, description, and due date
+- Mark tasks as completed
+- List all tasks (pending & completed)
+- Delete tasks
+- Save data to a file (JSON or CSV)</textarea>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group full-width">
+            <label for="id_rubric">Grading Rubric</label>
+            <textarea name="rubric" id="id_rubric" class="form-control" rows="6">Functionality (all features working): 60 points
+Code Structure & OOP Usage: 20 points
+Error Handling & Validation: 10 points
+README & Documentation: 10 points</textarea>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group full-width">
+            <label for="id_submission_format">Submission Format Guidelines</label>
+            <textarea name="submission_format" id="id_submission_format" class="form-control" rows="4">Submit a ZIP file named "yourname_todo_project.zip" containing:
+- All Python source files
+- A README.md with setup and running instructions
+- Screenshots of the application running</textarea>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group full-width">
+            <label>Current Reference Files</label>
+            <div class="current-files">
+              <p><a href="#">todo_starter_template.zip</a> <button class="action-icon-btn delete" title="Remove">🗑️</button></p>
+              <p><a href="#">sample_output_screenshots.pdf</a> <button class="action-icon-btn delete" title="Remove">🗑️</button></p>
+            </div>
+            <label for="id_new_reference_files">Add / Replace Reference Files</label>
+            <input type="file" name="new_reference_files" id="id_new_reference_files" class="form-control" multiple 
+                   accept=".zip,.pdf,.py,.js,.html,.css,.xlsx">
+            <small class="help-text">Upload new starter code, templates, or reference materials</small>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group full-width">
+            <label for="id_notes">Additional Notes / Updates</label>
+            <textarea name="notes" id="id_notes" class="form-control" rows="4">Extension granted until Jan 18 for 2 employees due to medical reasons. Clarified that file persistence is required.</textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Update Assignment</button>
+        <a href="{% url 'employee_app:assignment_details' %}" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,99 @@
+{# session_add.html - Add New Session #}
+{% extends 'employee_app/base.html' %}
+
+{% block page_title %}Add New Session{% endblock %}
+
+{% block content %}
+<div class="content-area">
+  <div class="content-card">
+    <div class="card-header">
+      <h2>Add New Session</h2>
+      <p class="card-subtitle">Schedule a new training session with complete details</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="biodata-form">
+      {% csrf_token %}
+
+      <div class="form-section">
+        <h3 class="section-title">Session Information</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="id_title">Session Title <span class="text-danger">*</span></label>
+            <input type="text" name="title" id="id_title" class="form-control" 
+                   placeholder="e.g. Python OOP Concepts" required>
+          </div>
+          <div class="form-group">
+            <label for="id_batch">Batch <span class="text-danger">*</span></label>
+            <select name="batch" id="id_batch" class="form-control" required>
+              <option value="">--- Select Batch ---</option>
+              <option value="1">Python Full Stack - Batch 2026-A</option>
+              <option value="2">React & Node.js - Batch 2026-B</option>
+              <option value="3">Data Science Bootcamp - Batch 2025-D</option>
+              <option value="4">DevOps Essentials - Batch 2026-C</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="id_date_time">Date & Time <span class="text-danger">*</span></label>
+            <input type="datetime-local" name="date_time" id="id_date_time" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="id_duration">Duration (hours)</label>
+            <input type="number" name="duration" id="id_duration" class="form-control" 
+                   min="0.5" step="0.5" value="2" placeholder="e.g. 2">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group full-width">
+            <label for="id_topic">Topics Covered / Agenda</label>
+            <textarea name="topic" id="id_topic" class="form-control" rows="5"
+                      placeholder="Detailed list of topics, key concepts, practical exercises, and session agenda..."></textarea>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="id_meeting_link">Meeting Link (Zoom/Google Meet)</label>
+            <input type="url" name="meeting_link" id="id_meeting_link" class="form-control" 
+                   placeholder="https://zoom.us/j/... or https://meet.google.com/...">
+          </div>
+          <div class="form-group">
+            <label for="id_status">Status</label>
+            <select name="status" id="id_status" class="form-control">
+              <option value="pending" selected>Pending</option>
+              <option value="ongoing">Ongoing</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group full-width">
+            <label for="id_materials">Upload Materials (optional)</label>
+            <input type="file" name="materials" id="id_materials" class="form-control" multiple 
+                   accept=".pdf,.pptx,.docx,.zip,.xlsx">
+            <small class="help-text">Slides, code samples, exercises, reference documents, etc.</small>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group full-width">
+            <label for="id_notes">Additional Notes</label>
+            <textarea name="notes" id="id_notes" class="form-control" rows="4"
+                      placeholder="Prerequisites, special instructions, recording policy, etc."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Create Session</button>
+        <a href="" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

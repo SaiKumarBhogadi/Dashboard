@@ -1,58 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STACKLY - Add Training</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body class="dashboard-page">
-    <div class="dashboard-wrapper">
-        
-        <!-- Left Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-logo">
-                <img src="./logo.png" alt="STACKLY Logo" class="sidebar-logo-image">
-            </div>
-
-            <nav class="sidebar-menu">
-                <ul>
-                    <li><a href="index.html" class="menu-item" data-page="dashboard"><span class="menu-icon">📊</span><span class="menu-text">Dashboard</span></a></li>
-                    <li><a href="biodata.html" class="menu-item" data-page="biodata"><span class="menu-icon">👤</span><span class="menu-text">Employee Bio Data</span></a></li>
-                    <li><a href="training.html" class="menu-item active" data-page="training"><span class="menu-icon">📚</span><span class="menu-text">Training Details</span></a></li>
-                    <li><a href="project.html" class="menu-item" data-page="project"><span class="menu-icon">🎯</span><span class="menu-text">Projects</span></a></li>
-                    <li><a href="users_manager.html" class="menu-item" data-page="users"><span class="menu-icon">👥</span><span class="menu-text">User Management</span></a></li>
-                </ul>
-            </nav>
-        </aside>
-
-        <!-- Main Content Area -->
-        <div class="main-content">
-            
-            <!-- Top Navigation Bar -->
-            <header class="top-navbar">
-                <div class="navbar-left">
-                    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
-                    <h3 class="page-title">Add Training</h3>
-                </div>
-                
-                <div class="navbar-right">
-                    <div class="profile-dropdown">
-                        <div class="profile-circle"><span class="profile-initial">JD</span></div>
-                        <div class="profile-info">
-                            <p class="profile-name">John Doe</p>
-                            <p class="profile-role">Employee</p>
-                        </div>
-                        <span class="dropdown-arrow">▼</span>
-                        <div class="dropdown-menu">
-                            <a href="profile.html" class="dropdown-item">View Profile</a>
-                            <a href="settings.html" class="dropdown-item">Settings</a>
-                            <hr>
-                            <a href="login.html" class="dropdown-item logout">Logout</a>
-                        </div>
-                    </div>
-                </div>
-            </header>
+{% extends 'employee_app/base.html' %}
+{% load static %}
+{% block page_title %}Add Trainee{% endblock %}
+{% block content %}
 
             <!-- Page Content -->
             <div class="content-area">
@@ -126,8 +75,7 @@
                     </form>
                 </div>
             </div>
-        </div>
-    </div>
+        
 
     <script>
         // Training Track to Technologies Mapping
@@ -193,23 +141,6 @@
             });
         }
 
-        // Profile dropdown handling
-        const profileDropdown = document.querySelector('.profile-dropdown');
-        const dropdownMenu = document.querySelector('.dropdown-menu');
-
-        if (profileDropdown) {
-            profileDropdown.addEventListener('click', function(e) {
-                e.stopPropagation();
-                dropdownMenu.classList.toggle('show');
-            });
-        }
-
-        document.addEventListener('click', function() {
-            if (dropdownMenu) {
-                dropdownMenu.classList.remove('show');
-            }
-        });
+        
     </script>
-    <script src="./scripts.js"></script>
-</body>
-</html>
+{% endblock %}

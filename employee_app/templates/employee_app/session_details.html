@@ -1,0 +1,196 @@
+{# session_detail.html #}
+{% extends 'employee_app/base.html' %}
+
+{% block page_title %}Session Details{% endblock %}
+
+{% block content %}
+<div class="content-area">
+  <div class="content-card">
+    <div class="card-header">
+      <h2>Session Details: Python Fundamentals</h2>
+      <p class="card-subtitle">Complete information about this training session</p>
+      <div class="header-action">
+        <a href="#" class="btn btn-primary">Edit Session</a>
+        <button class="btn btn-danger">Delete Session</button>
+      </div>
+    </div>
+
+    <!-- Basic Session Info -->
+    <div class="section-block">
+      <div class="section-header">
+        <h3>Session Information</h3>
+      </div>
+      <div class="profile-v2-right">
+        <div class="pv-section">
+          <div class="pv-row">
+            <span>Title</span>
+            <span>Python Fundamentals</span>
+          </div>
+          <div class="pv-row">
+            <span>Batch</span>
+            <span>Python Full Stack - Batch 2026-A</span>
+          </div>
+          <div class="pv-row">
+            <span>Date & Time</span>
+            <span>08 Jan 2026, 10:00 AM</span>
+          </div>
+          <div class="pv-row">
+            <span>Duration</span>
+            <span>2 hours</span>
+          </div>
+          <div class="pv-row">
+            <span>Topic</span>
+            <span>Variables, Data Types, Control Flow, Basic Functions</span>
+          </div>
+          <div class="pv-row">
+            <span>Status</span>
+            <span><span class="status-badge ongoing">Ongoing</span></span>
+          </div>
+          <div class="pv-row">
+            <span>Location / Link</span>
+            <span>Zoom Meeting: https://zoom.us/j/123456789</span>
+          </div>
+          <div class="pv-row">
+            <span>Materials</span>
+            <span><a href="#">Slides.pdf</a> | <a href="#">Code Samples.zip</a></span>
+          </div>
+          <div class="pv-row">
+            <span>Attendance</span>
+            <span>20/22 (90%)</span>
+          </div>
+          <div class="pv-row">
+            <span>Created By</span>
+            <span>Rajesh Kumar (rajesh.kumar@company.com)</span>
+          </div>
+          <div class="pv-row">
+            <span>Created Date</span>
+            <span>01 Jan 2026</span>
+          </div>
+          <div class="pv-row">
+            <span>Last Updated</span>
+            <span>05 Jan 2026</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Trainers/Instructors -->
+    <div class="section-block">
+      <div class="section-header">
+        <h3>Instructors</h3>
+      </div>
+      <div class="table-container">
+        <table class="employees-biodata-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Rajesh Kumar</td>
+              <td>rajesh.kumar@company.com</td>
+              <td>Lead Instructor</td>
+            </tr>
+            <tr>
+              <td>Priya Sharma</td>
+              <td>priya.sharma@company.com</td>
+              <td>Co-Instructor</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Attendees (Employees) -->
+    <div class="section-block">
+      <div class="section-header">
+        <h3>Attendees</h3>
+        <a href="#" class="btn btn-secondary">Mark Attendance</a>
+      </div>
+      <div class="table-container">
+        <table class="employees-biodata-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Attendance Status</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Sai Kumar</td>
+              <td>sai.kumar@company.com</td>
+              <td><span class="status-badge completed">Present</span></td>
+              <td>N/A</td>
+            </tr>
+            <tr>
+              <td>Arjun Patel</td>
+              <td>arjun.patel@company.com</td>
+              <td><span class="status-badge pending">Absent</span></td>
+              <td>Medical Leave</td>
+            </tr>
+            <tr>
+              <td>Neha Singh</td>
+              <td>neha.singh@company.com</td>
+              <td><span class="status-badge completed">Present</span></td>
+              <td>Active Participant</td>
+            </tr>
+            <!-- More attendees... -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Linked Assignments -->
+    <div class="section-block">
+      <div class="section-header">
+        <h3>Linked Assignments</h3>
+        <a href="#" class="btn btn-secondary">Add Assignment</a>
+      </div>
+      <div class="table-container">
+        <table class="employees-biodata-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Due Date</th>
+              <th>Max Score</th>
+              <th>Status</th>
+              <th>Submissions</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Python Basics Project</td>
+              <td>15 Jan 2026</td>
+              <td>100</td>
+              <td><span class="status-badge pending">Pending</span></td>
+              <td>15/22</td>
+              <td><a href="#" class="action-icon-btn" title="View">👁️</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Session Notes / Feedback -->
+    <div class="section-block">
+      <div class="section-header">
+        <h3>Notes & Feedback</h3>
+      </div>
+      <textarea class="form-control full-width" rows="5" placeholder="Add session notes, key takeaways, or feedback...">Key Takeaways: 
+- Introduced basic syntax
+- Common errors discussed
+Feedback: Employees requested more examples</textarea>
+    </div>
+
+    <div class="form-actions">
+      <a href="" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,3 +1,34 @@
+# --- Static Template Preview Views ---
+from django.views.generic import TemplateView
+
+
+
+def batch_form(request):
+    return render(request, 'employee_app/batch_form.html')
+
+def session_form(request):
+    return render(request, 'employee_app/session_form.html')
+
+def assignment_form(request):
+    return render(request, 'employee_app/assignment_form.html')
+
+def batch_details(request):
+    return render(request, 'employee_app/batch_details.html')
+
+def session_details(request):
+    return render(request, 'employee_app/session_details.html')
+
+def assignment_details(request):
+    return render(request, 'employee_app/assignment_details.html')
+
+def edit_batch(request):
+    return render(request, 'employee_app/edit_batch.html')
+
+def edit_session(request):
+    return render(request, 'employee_app/edit_session.html')
+
+def edit_assignment(request):
+    return render(request, 'employee_app/edit_assignment.html')
 
 
 from django.shortcuts import render, redirect, get_object_or_404
@@ -212,6 +243,12 @@ def training(request):
     if not has_permission(request.user, 'training', 'view'):
         return HttpResponse('Access Denied', status=403)
     return render(request, 'employee_app/training.html')
+
+@login_required
+def add_trainee(request):
+    if not has_permission(request.user, 'training', 'create'):
+        return HttpResponse('Access Denied', status=403)
+    return render(request, 'employee_app/add_trainee.html')
 
 
 

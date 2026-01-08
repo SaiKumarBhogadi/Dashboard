@@ -1,560 +1,468 @@
+{# training_dashboard.html - Full Template with Tabs, Pagination (HTML-only data) #}
 {% extends 'employee_app/base.html' %}
 
-{% block page_title %}Training {{ bio.full_name }}{% endblock %}
+{% block page_title %}Training Dashboard{% endblock %}
 
 {% block content %}
-            <!-- Page Content -->
-            <div class="content-area">
-                
-                <!-- Search/Filter Section -->
-                <div class="content-card" style="margin-bottom: 20px;">
-                    <div class="list-controls">
-                        <input type="text" id="searchTraining" placeholder="Search by employee name or ID..." class="search-input" onkeyup="searchAllTables()">
-                        <a href="add_trainee.html" class="btn btn-primary" style="text-decoration: none;">+ Add Training</a>
-                    </div>
-                </div>
+<div class="content-area">
+  <div class="content-card">
 
-                <!-- FRONT END DEVELOPER TABLE -->
-                <div class="content-card training-track-section" id="frontend-section">
-                    <div class="card-header">
-                        <h2>💻 Front End Developer Training</h2>
-                        <p class="card-subtitle">HTML, CSS, JavaScript, React JS</p>
-                    </div>
-                    <div class="table-container">
-                        <div class="table-wrapper">
-                        <table class="training-records-table training-track-table" data-track="front_end">
-                            <thead>
-                                <tr>
-                                    <th>Employee Name</th>
-                                    <th>Employee ID</th>
-                                    <th>HTML<br><small>Status | Trainer</small></th>
-                                    <th>CSS<br><small>Status | Trainer</small></th>
-                                    <th>JavaScript<br><small>Status | Trainer</small></th>
-                                    <th>React JS<br><small>Status | Trainer</small></th>
-                                    <th>Start Date</th>
-                                    <th>End Date</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="frontend-tbody" data-track="Front End Developer" data-page="1" data-per-page="10">
-                                <tr data-employee="Sarah Miller" data-employee-id="EMP-002">
-                                    <td>Sarah Miller</td>
-                                    <td>EMP-002</td>
-                                    <td>
-                                        <span class="status-badge completed">✓ Completed</span><br>
-                                        <small style="color: #718096;">Emily Brown</small>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge completed">✓ Completed</span><br>
-                                        <small style="color: #718096;">Emily Brown</small>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge completed">✓ Completed</span><br>
-                                        <small style="color: #718096;">Tom Johnson</small>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge ongoing">In Progress</span><br>
-                                        <small style="color: #718096;">Tom Johnson</small>
-                                    </td>
-                                    <td>2024-06-15</td>
-                                    <td>2025-02-28</td>
-                                    <td>
-                                        <button class="action-icon-btn" title="Edit" onclick="editTrainingRecord(1)">✏️</button>
-                                        <button class="action-icon-btn delete" title="Delete" onclick="deleteTrainingRecord(1)">🗑️</button>
-                                    </td>
-                                </tr>
-                                <tr data-employee="David Kumar" data-employee-id="EMP-005">
-                                    <td>David Kumar</td>
-                                    <td>EMP-005</td>
-                                    <td>
-                                        <span class="status-badge completed">✓ Completed</span><br>
-                                        <small style="color: #718096;">Emily Brown</small>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge ongoing">In Progress</span><br>
-                                        <small style="color: #718096;">Emily Brown</small>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge pending">Not Started</span><br>
-                                        <small style="color: #718096;">Tom Johnson</small>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge pending">Not Started</span><br>
-                                        <small style="color: #718096;">Tom Johnson</small>
-                                    </td>
-                                    <td>2024-09-01</td>
-                                    <td>2025-03-15</td>
-                                    <td>
-                                        <button class="action-icon-btn" title="Edit" onclick="editTrainingRecord(2)">✏️</button>
-                                        <button class="action-icon-btn delete" title="Delete" onclick="deleteTrainingRecord(2)">🗑️</button>
-                                    </td>
-                                </tr>
-                                <tr data-employee="Chris Lee" data-employee-id="EMP-009">
-                                    <td>Chris Lee</td>
-                                    <td>EMP-009</td>
-                                    <td>
-                                        <span class="status-badge ongoing">In Progress</span><br>
-                                        <small style="color: #718096;">Emily Brown</small>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge ongoing">In Progress</span><br>
-                                        <small style="color: #718096;">Emily Brown</small>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge ongoing">In Progress</span><br>
-                                        <small style="color: #718096;">Tom Johnson</small>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge pending">Not Started</span><br>
-                                        <small style="color: #718096;">Tom Johnson</small>
-                                    </td>
-                                    <td>2024-11-01</td>
-                                    <td>2025-05-01</td>
-                                    <td>
-                                        <button class="action-icon-btn" title="Edit" onclick="editTrainingRecord(3)">✏️</button>
-                                        <button class="action-icon-btn delete" title="Delete" onclick="deleteTrainingRecord(3)">🗑️</button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        </div>
-                    </div>
-                    <!-- Pagination Controls -->
-                    <div class="table-pagination" data-table="frontend">
-                        <button class="pagination-btn" onclick="previousPage('frontend')">← Previous</button>
-                        <span class="pagination-info"><span class="current-page">1</span> / <span class="total-pages">1</span></span>
-                        <button class="pagination-btn" onclick="nextPage('frontend')">Next →</button>
-                    </div>
-                </div>
+    {% if user.role == 'trainer' or user.role == 'admin' or user.role == 'super_admin' %}
 
-                <!-- FULL STACK DEVELOPER TABLE -->
-                <div class="content-card training-track-section" id="fullstack-section" style="margin-top: 30px;">
-                    <div class="card-header">
-                        <h2>🔥 Full Stack Developer Training</h2>
-                        <p class="card-subtitle">HTML, CSS, JavaScript, React JS, MongoDB, Python</p>
-                    </div>
-                    <div class="table-container">
-                        <div class="table-wrapper">
-                        <table class="training-records-table training-track-table" data-track="full_stack">
-                            <thead>
-                                <tr>
-                                    <th>Employee Name</th>
-                                    <th>Employee ID</th>
-                                    <th>HTML<br><small>Status | Trainer</small></th>
-                                    <th>CSS<br><small>Status | Trainer</small></th>
-                                    <th>JavaScript<br><small>Status | Trainer</small></th>
-                                    <th>React JS<br><small>Status | Trainer</small></th>
-                                    <th>MongoDB<br><small>Status | Trainer</small></th>
-                                    <th>Python<br><small>Status | Trainer</small></th>
-                                    <th>Start Date</th>
-                                    <th>End Date</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="fullstack-tbody" data-track="Full Stack Developer" data-page="1" data-per-page="10">
-                                <tr data-employee="John Doe" data-employee-id="EMP-001">
-                                    <td>John Doe</td>
-                                    <td>EMP-001</td>
-                                    <td>
-                                        <span class="status-badge completed">✓ Completed</span><br>
-                                        <small style="color: #718096;">Tom Johnson</small>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge completed">✓ Completed</span><br>
-                                        <small style="color: #718096;">Tom Johnson</small>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge ongoing">In Progress</span><br>
-                                        <small style="color: #718096;">Tom Johnson</small>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge ongoing">In Progress</span><br>
-                                        <small style="color: #718096;">Tom Johnson</small>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge pending">Not Started</span><br>
-                                        <small style="color: #718096;">Sarah Smith</small>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge pending">Not Started</span><br>
-                                        <small style="color: #718096;">Sarah Smith</small>
-                                    </td>
-                                    <td>2024-07-10</td>
-                                    <td>2025-04-10</td>
-                                    <td>
-                                        <button class="action-icon-btn" title="Edit" onclick="editTrainingRecord(4)">✏️</button>
-                                        <button class="action-icon-btn delete" title="Delete" onclick="deleteTrainingRecord(4)">🗑️</button>
-                                    </td>
-                                </tr>
-                                <tr data-employee="Emma Johnson" data-employee-id="EMP-006">
-                                    <td>Emma Johnson</td>
-                                    <td>EMP-006</td>
-                                    <td>
-                                        <span class="status-badge completed">✓ Completed</span><br>
-                                        <small style="color: #718096;">Tom Johnson</small>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge completed">✓ Completed</span><br>
-                                        <small style="color: #718096;">Tom Johnson</small>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge completed">✓ Completed</span><br>
-                                        <small style="color: #718096;">Tom Johnson</small>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge pending">Not Started</span><br>
-                                        <small style="color: #718096;">Tom Johnson</small>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge pending">Not Started</span><br>
-                                        <small style="color: #718096;">Sarah Smith</small>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge pending">Not Started</span><br>
-                                        <small style="color: #718096;">Sarah Smith</small>
-                                    </td>
-                                    <td>2024-08-05</td>
-                                    <td>2025-05-05</td>
-                                    <td>
-                                        <button class="action-icon-btn" title="Edit" onclick="editTrainingRecord(5)">✏️</button>
-                                        <button class="action-icon-btn delete" title="Delete" onclick="deleteTrainingRecord(5)">🗑️</button>
-                                    </td>
-                                </tr>
-                                <tr data-employee="Maria Garcia" data-employee-id="EMP-010">
-                                    <td>Maria Garcia</td>
-                                    <td>EMP-010</td>
-                                    <td>
-                                        <span class="status-badge ongoing">In Progress</span><br>
-                                        <small style="color: #718096;">Tom Johnson</small>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge ongoing">In Progress</span><br>
-                                        <small style="color: #718096;">Tom Johnson</small>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge pending">Not Started</span><br>
-                                        <small style="color: #718096;">Tom Johnson</small>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge pending">Not Started</span><br>
-                                        <small style="color: #718096;">Tom Johnson</small>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge pending">Not Started</span><br>
-                                        <small style="color: #718096;">Sarah Smith</small>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge pending">Not Started</span><br>
-                                        <small style="color: #718096;">Sarah Smith</small>
-                                    </td>
-                                    <td>2024-10-20</td>
-                                    <td>2025-06-20</td>
-                                    <td>
-                                        <button class="action-icon-btn" title="Edit" onclick="editTrainingRecord(6)">✏️</button>
-                                        <button class="action-icon-btn delete" title="Delete" onclick="deleteTrainingRecord(6)">🗑️</button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        </div>
-                    </div>
-                    <!-- Pagination Controls -->
-                    <div class="table-pagination" data-table="fullstack">
-                        <button class="pagination-btn" onclick="previousPage('fullstack')">← Previous</button>
-                        <span class="pagination-info"><span class="current-page">1</span> / <span class="total-pages">1</span></span>
-                        <button class="pagination-btn" onclick="nextPage('fullstack')">Next →</button>
-                    </div>
-                </div>
+      <!-- Trainer / Admin View -->
+      <div class="card-header">
+        <h2>Training Dashboard</h2>
+        <p class="card-subtitle">Manage batches, sessions, assignments, and track overall progress</p>
+        <div class="header-action">
+          <a href="{% url 'employee_app:create_batch' %}" class="btn btn-primary">+ Create New Batch</a>
+        </div>
+      </div>
 
-                <!-- CLOUD ENGINEER TABLE -->
-                <div class="content-card training-track-section" id="cloud-section" style="margin-top: 30px;">
-                    <div class="card-header">
-                        <h2>☁️ Cloud Engineer Training</h2>
-                        <p class="card-subtitle">SQL, Python, AWS</p>
-                    </div>
-                    <div class="table-container">
-                        <div class="table-wrapper">
-                        <table class="training-records-table training-track-table" data-track="cloud">
-                            <thead>
-                                <tr>
-                                    <th>Employee Name</th>
-                                    <th>Employee ID</th>
-                                    <th>SQL<br><small>Status | Trainer</small></th>
-                                    <th>Python<br><small>Status | Trainer</small></th>
-                                    <th>AWS<br><small>Status | Trainer</small></th>
-                                    <th>Start Date</th>
-                                    <th>End Date</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="cloud-tbody" data-track="Cloud Engineer" data-page="1" data-per-page="10">
-                                <tr data-employee="Michael Wilson" data-employee-id="EMP-003">
-                                    <td>Michael Wilson</td>
-                                    <td>EMP-003</td>
-                                    <td>
-                                        <span class="status-badge completed">✓ Completed</span><br>
-                                        <small style="color: #718096;">Sarah Smith</small>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge ongoing">In Progress</span><br>
-                                        <small style="color: #718096;">Sarah Smith</small>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge pending">Not Started</span><br>
-                                        <small style="color: #718096;">Sarah Smith</small>
-                                    </td>
-                                    <td>2024-08-20</td>
-                                    <td>2025-03-20</td>
-                                    <td>
-                                        <button class="action-icon-btn" title="Edit" onclick="editTrainingRecord(7)">✏️</button>
-                                        <button class="action-icon-btn delete" title="Delete" onclick="deleteTrainingRecord(7)">🗑️</button>
-                                    </td>
-                                </tr>
-                                <tr data-employee="Alex Thompson" data-employee-id="EMP-007">
-                                    <td>Alex Thompson</td>
-                                    <td>EMP-007</td>
-                                    <td>
-                                        <span class="status-badge ongoing">In Progress</span><br>
-                                        <small style="color: #718096;">Sarah Smith</small>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge ongoing">In Progress</span><br>
-                                        <small style="color: #718096;">Sarah Smith</small>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge pending">Not Started</span><br>
-                                        <small style="color: #718096;">Sarah Smith</small>
-                                    </td>
-                                    <td>2024-12-10</td>
-                                    <td>2025-03-20</td>
-                                    <td>
-                                        <button class="action-icon-btn" title="Edit" onclick="editTrainingRecord(8)">✏️</button>
-                                        <button class="action-icon-btn delete" title="Delete" onclick="deleteTrainingRecord(8)">🗑️</button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        </div>
-                    </div>
-                    <!-- Pagination Controls -->
-                    <div class="table-pagination" data-table="cloud">
-                        <button class="pagination-btn" onclick="previousPage('cloud')">← Previous</button>
-                        <span class="pagination-info"><span class="current-page">1</span> / <span class="total-pages">1</span></span>
-                        <button class="pagination-btn" onclick="nextPage('cloud')">Next →</button>
-                    </div>
+      <!-- Quick Stats -->
+      <div class="training-stats-grid">
+        <div class="stat-card">
+          <h3>Active Batches</h3>
+          <p class="stat-number">12</p>
+        </div>
+        <div class="stat-card">
+          <h3>Total Sessions</h3>
+          <p class="stat-number">68</p>
+        </div>
+        <div class="stat-card">
+          <h3>Pending Assignments</h3>
+          <p class="stat-number">24</p>
+        </div>
+        <div class="stat-card">
+          <h3>Employees Enrolled</h3>
+          <p class="stat-number">184</p>
+        </div>
+      </div>
 
-                    
-                </div>
+      <!-- Tab Navigation -->
+      <div class="tab-navigation">
+        <button class="tab-btn active" data-tab="batches">Batches</button>
+        <button class="tab-btn" data-tab="sessions">Sessions</button>
+        <button class="tab-btn" data-tab="assignments">Assignments</button>
+      </div>
 
-                <!-- DATA ANALYST TABLE -->
-                <div class="content-card training-track-section" id="data-section" style="margin-top: 30px;">
-                    <div class="card-header">
-                        <h2>📊 Data Analyst Training</h2>
-                        <p class="card-subtitle">SQL, Python, Power BI, Tableau</p>
-                    </div>
-                    <div class="table-container">
-                        <div class="table-wrapper">
-                        <table class="training-records-table training-track-table" data-track="data_analyst">
-                            <thead>
-                                <tr>
-                                    <th>Employee Name</th>
-                                    <th>Employee ID</th>
-                                    <th>SQL<br><small>Status | Trainer</small></th>
-                                    <th>Python<br><small>Status | Trainer</small></th>
-                                    <th>Power BI<br><small>Status | Trainer</small></th>
-                                    <th>Tableau<br><small>Status | Trainer</small></th>
-                                    <th>Start Date</th>
-                                    <th>End Date</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="data-tbody" data-track="Data Analyst" data-page="1" data-per-page="10">
-                                <tr data-employee="Lisa Chen" data-employee-id="EMP-004">
-                                    <td>Lisa Chen</td>
-                                    <td>EMP-004</td>
-                                    <td>
-                                        <span class="status-badge ongoing">In Progress</span><br>
-                                        <small style="color: #718096;">David Kumar</small>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge ongoing">In Progress</span><br>
-                                        <small style="color: #718096;">David Kumar</small>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge pending">Not Started</span><br>
-                                        <small style="color: #718096;">David Kumar</small>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge pending">Not Started</span><br>
-                                        <small style="color: #718096;">David Kumar</small>
-                                    </td>
-                                    <td>2024-12-01</td>
-                                    <td>2025-03-15</td>
-                                    <td>
-                                        <button class="action-icon-btn" title="Edit" onclick="editTrainingRecord(9)">✏️</button>
-                                        <button class="action-icon-btn delete" title="Delete" onclick="deleteTrainingRecord(9)">🗑️</button>
-                                    </td>
-                                </tr>
-                                <tr data-employee="Rachel Green" data-employee-id="EMP-008">
-                                    <td>Rachel Green</td>
-                                    <td>EMP-008</td>
-                                    <td>
-                                        <span class="status-badge completed">✓ Completed</span><br>
-                                        <small style="color: #718096;">David Kumar</small>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge completed">✓ Completed</span><br>
-                                        <small style="color: #718096;">David Kumar</small>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge pending">Not Started</span><br>
-                                        <small style="color: #718096;">David Kumar</small>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge ongoing">In Progress</span><br>
-                                        <small style="color: #718096;">David Kumar</small>
-                                    </td>
-                                    <td>2024-09-01</td>
-                                    <td>2025-01-31</td>
-                                    <td>
-                                        <button class="action-icon-btn" title="Edit" onclick="editTrainingRecord(10)">✏️</button>
-                                        <button class="action-icon-btn delete" title="Delete" onclick="deleteTrainingRecord(10)">🗑️</button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        </div>
-                    </div>
-                    <!-- Pagination Controls -->
-                    <div class="table-pagination" data-table="data">
-                        <button class="pagination-btn" onclick="previousPage('data')">← Previous</button>
-                        <span class="pagination-info"><span class="current-page">1</span> / <span class="total-pages">1</span></span>
-                        <button class="pagination-btn" onclick="nextPage('data')">Next →</button>
-                    </div>
+      <!-- Batches Tab -->
+      <div id="batches" class="tab-content active">
+        <div class="section-header">
+          <h3>Batches</h3>
+          <a href="{% url 'employee_app:create_batch' %}" class="btn btn-primary">+ Add Batch</a>
+        </div>
+        <div class="table-container">
+          <table class="employees-biodata-table">
+            <thead>
+              <tr>
+                <th>Batch Name</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Trainer(s)</th>
+                <th>Employees</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="batches-tbody">
+              <!-- All batch rows directly in HTML (20+ for pagination demo) -->
+              <tr>
+                <td><a href="{% url 'employee_app:batch_details'  %}">Python Full Stack - Batch 2026-A</a></td>
+                <td>05 Jan 2026</td>
+                <td>05 Jun 2026</td>
+                <td>Rajesh Kumar, Priya Sharma</td>
+                <td>22</td>
+                <td><span class="status-badge ongoing">Ongoing</span></td>
+                <td>
+                  <a href="{% url 'employee_app:edit_batch'  %}" class="action-icon-btn" title="Edit">✏️</a>
+                  <button class="action-icon-btn delete" title="Delete">🗑️</button>
+                </td>
+              </tr>
+              <tr>
+                <td><a href="{% url 'employee_app:batch_details'  %}">React & Node.js - Batch 2026-B</a></td>
+                <td>15 Jan 2026</td>
+                <td>15 Jul 2026</td>
+                <td>John Doe</td>
+                <td>18</td>
+                <td><span class="status-badge ongoing">Ongoing</span></td>
+                <td>
+                  <a href="{% url 'employee_app:edit_batch'  %}" class="action-icon-btn" title="Edit">✏️</a>
+                  <button class="action-icon-btn delete" title="Delete">🗑️</button>
+                </td>
+              </tr>
+              <tr>
+                <td><a href="{% url 'employee_app:batch_details'  %}">Data Science Bootcamp - Batch 2025-D</a></td>
+                <td>01 Oct 2025</td>
+                <td>31 Mar 2026</td>
+                <td>Meera Nair, Anil Verma</td>
+                <td>15</td>
+                <td><span class="status-badge completed">Completed</span></td>
+                <td>
+                  <a href="{% url 'employee_app:edit_batch'  %}" class="action-icon-btn" title="Edit">✏️</a>
+                  <button class="action-icon-btn delete" title="Delete">🗑️</button>
+                </td>
+              </tr>
+              <tr>
+                <td><a href="{% url 'employee_app:batch_details'  %}">DevOps Essentials - Batch 2026-C</a></td>
+                <td>01 Feb 2026</td>
+                <td>30 Apr 2026</td>
+                <td>Suresh Reddy</td>
+                <td>20</td>
+                <td><span class="status-badge pending">Upcoming</span></td>
+                <td>
+                  <a href="{% url 'employee_app:edit_batch'  %}" class="action-icon-btn" title="Edit">✏️</a>
+                  <button class="action-icon-btn delete" title="Delete">🗑️</button>
+                </td>
+              </tr>
+              <tr>
+                <td><a href="#">Machine Learning Advanced - Batch 2026-E</a></td>
+                <td>10 Mar 2026</td>
+                <td>10 Aug 2026</td>
+                <td>Anil Verma, Rajesh Kumar</td>
+                <td>25</td>
+                <td><span class="status-badge pending">Upcoming</span></td>
+                <td>
+                  <a href="#" class="action-icon-btn" title="Edit">✏️</a>
+                  <button class="action-icon-btn delete" title="Delete">🗑️</button>
+                </td>
+              </tr>
+              <tr>
+                <td><a href="#">Full Stack Java - Batch 2026-F</a></td>
+                <td>20 Feb 2026</td>
+                <td>20 Jul 2026</td>
+                <td>Priya Sharma</td>
+                <td>19</td>
+                <td><span class="status-badge ongoing">Ongoing</span></td>
+                <td>
+                  <a href="#" class="action-icon-btn" title="Edit">✏️</a>
+                  <button class="action-icon-btn delete" title="Delete">🗑️</button>
+                </td>
+              </tr>
+              <!-- Add more rows as needed to test pagination (total >10) -->
+            </tbody>
+          </table>
+        </div>
+        <div class="table-pagination" id="batches-pagination"></div>
+      </div>
 
-                    <div class="export-buttons" style="margin-top: 25px; text-align: right;">
-                        <button class="btn btn-excel" style="
-                            padding: 10px 18px;
-                            background-color: #2e7d32;
-                            color: white;
-                            border: none;
-                            border-radius: 6px;
-                            cursor: pointer;
-                            margin-right: 10px;
-                            margin-bottom:5px;">
-                            📄 Export Excel
-                        </button>
+      <!-- Sessions Tab -->
+      <div id="sessions" class="tab-content">
+        <div class="section-header">
+          <h3>Sessions</h3>
+          <a href="{% url 'employee_app:create_session' %}" class="btn btn-primary">+ Add Session</a>
+        </div>
+        <div class="table-container">
+          <table class="employees-biodata-table">
+            <thead>
+              <tr>
+                <th>Session Title</th>
+                <th>Batch</th>
+                <th>Date & Time</th>
+                <th>Duration</th>
+                <th>Topic</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="sessions-tbody">
+              <tr>
+                <td><a href="{% url 'employee_app:session_details'  %}">Python Fundamentals</a></td>
+                <td>Python Full Stack - Batch 2026-A</td>
+                <td>08 Jan 2026, 10:00 AM</td>
+                <td>2h</td>
+                <td>Variables, Data Types, Control Flow</td>
+                <td><span class="status-badge ongoing">Live Now</span></td>
+                <td>
+                  <a href="{% url 'employee_app:edit_session'  %}" class="action-icon-btn" title="Edit">✏️</a>
+                  <button class="action-icon-btn delete" title="Delete">🗑️</button>
+                </td>
+              </tr>
+              <tr>
+                <td><a href="#">Advanced React Hooks</a></td>
+                <td>React & Node.js - Batch 2026-B</td>
+                <td>10 Jan 2026, 2:00 PM</td>
+                <td>1.5h</td>
+                <td>useEffect, Custom Hooks</td>
+                <td><span class="status-badge pending">Upcoming</span></td>
+                <td>
+                  <a href="#" class="action-icon-btn" title="Edit">✏️</a>
+                  <button class="action-icon-btn delete" title="Delete">🗑️</button>
+                </td>
+              </tr>
+              <tr>
+                <td><a href="#">Pandas & Data Cleaning</a></td>
+                <td>Data Science Bootcamp - Batch 2025-D</td>
+                <td>20 Dec 2025, 11:00 AM</td>
+                <td>2h</td>
+                <td>DataFrames, Handling Missing Data</td>
+                <td><span class="status-badge completed">Completed</span></td>
+                <td>
+                  <a href="#" class="action-icon-btn" title="Edit">✏️</a>
+                  <button class="action-icon-btn delete" title="Delete">🗑️</button>
+                </td>
+              </tr>
+              <!-- More rows -->
+            </tbody>
+          </table>
+        </div>
+        <div class="table-pagination" id="sessions-pagination"></div>
+      </div>
 
-                        <button class="btn btn-pdf" style="
-                            padding: 10px 18px;
-                            background-color: #c62828;
-                            color: white;
-                            border: none;
-                            border-radius: 6px;
-                            cursor: pointer;">
-                            📕 Export PDF
-                        </button>
-                    </div>
-                </div>
+      <!-- Assignments Tab -->
+      <div id="assignments" class="tab-content">
+        <div class="section-header">
+          <h3>Assignments</h3>
+          <a href="{% url 'employee_app:create_assignment' %}" class="btn btn-primary">+ Add Assignment</a>
+        </div>
+        <div class="table-container">
+          <table class="employees-biodata-table">
+            <thead>
+              <tr>
+                <th>Assignment Title</th>
+                <th>Batch</th>
+                <th>Session</th>
+                <th>Due Date</th>
+                <th>Max Score</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="assignments-tbody">
+              <tr>
+                <td><a href="{% url 'employee_app:assignment_details'  %}">Python Basics Project</a></td>
+                <td>Python Full Stack - Batch 2026-A</td>
+                <td>Python Fundamentals</td>
+                <td>15 Jan 2026</td>
+                <td>100</td>
+                <td><span class="status-badge pending">Pending</span></td>
+                <td>
+                  <a href="{% url 'employee_app:edit_assignment'  %}" class="action-icon-btn" title="Edit">✏️</a>
+                  <button class="action-icon-btn delete" title="Delete">🗑️</button>
+                </td>
+              </tr>
+              <tr>
+                <td><a href="#">Todo App with React</a></td>
+                <td>React & Node.js - Batch 2026-B</td>
+                <td>Advanced React Hooks</td>
+                <td>20 Jan 2026</td>
+                <td>150</td>
+                <td><span class="status-badge ongoing">In Progress</span></td>
+                <td>
+                  <a href="#" class="action-icon-btn" title="Edit">✏️</a>
+                  <button class="action-icon-btn delete" title="Delete">🗑️</button>
+                </td>
+              </tr>
+              <!-- More rows -->
+            </tbody>
+          </table>
+        </div>
+        <div class="table-pagination" id="assignments-pagination"></div>
+      </div>
 
-            </div>
-       
+    {% else %}
+       <!-- Employee View -->
+      <div class="card-header">
+        <h2>My Training</h2>
+        <p class="card-subtitle">Track your learning journey, upcoming sessions, and assignments</p>
+      </div>
 
-    <script>
-        // Pagination data storage
-        const paginationData = {
-            frontend: { currentPage: 1, perPage: 10, totalItems: 3 },
-            fullstack: { currentPage: 1, perPage: 10, totalItems: 3 },
-            cloud: { currentPage: 1, perPage: 10, totalItems: 2 },
-            data: { currentPage: 1, perPage: 10, totalItems: 2 }
-        };
+      <!-- My Batches -->
+      <div class="section-block">
+        <div class="section-header">
+          <h3>My Enrolled Batches</h3>
+        </div>
+        <div class="table-container">
+          <table class="employees-biodata-table">
+            <thead>
+              <tr>
+                <th>Batch Name</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Trainer(s)</th>
+                <th>Progress</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Python Full Stack - Batch 2026-A</td>
+                <td>05 Jan 2026</td>
+                <td>05 Jun 2026</td>
+                <td>Rajesh Kumar, Priya Sharma</td>
+                <td><span class="status-badge ongoing">32%</span></td>
+                <td><span class="status-badge ongoing">Ongoing</span></td>
+                <td><a href="#" class="action-icon-btn" title="View Details">👁️</a></td>
+              </tr>
+              <tr>
+                <td>DevOps Essentials - Batch 2026-C</td>
+                <td>01 Feb 2026</td>
+                <td>30 Apr 2026</td>
+                <td>Suresh Reddy</td>
+                <td><span class="status-badge pending">0%</span></td>
+                <td><span class="status-badge pending">Upcoming</span></td>
+                <td><a href="#" class="action-icon-btn" title="View Details">👁️</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-        // Initialize pagination
-        function initializePagination(tableKey) {
-            const tbody = document.querySelector(`tbody[data-track]`);
-            const rows = tbody.querySelectorAll('tr');
-            const totalItems = rows.length;
-            const totalPages = Math.ceil(totalItems / paginationData[tableKey].perPage);
-            
-            const paginationDiv = document.querySelector(`.table-pagination[data-table="${tableKey}"]`);
-            if (paginationDiv) {
-                paginationDiv.querySelector('.total-pages').textContent = totalPages;
-                updateTableDisplay(tableKey);
-            }
-        }
+      <!-- Upcoming Sessions -->
+      <div class="section-block">
+        <div class="section-header">
+          <h3>Upcoming Sessions</h3>
+        </div>
+        <div class="table-container">
+          <table class="employees-biodata-table">
+            <thead>
+              <tr>
+                <th>Date & Time</th>
+                <th>Session Title</th>
+                <th>Batch</th>
+                <th>Duration</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Today, 10:00 AM</td>
+                <td>Python Fundamentals</td>
+                <td>Python Full Stack - Batch 2026-A</td>
+                <td>2h</td>
+                <td><span class="status-badge ongoing">Live Now</span></td>
+              </tr>
+              <tr>
+                <td>10 Jan 2026, 2:00 PM</td>
+                <td>Functions & Modules</td>
+                <td>Python Full Stack - Batch 2026-A</td>
+                <td>1.5h</td>
+                <td><span class="status-badge pending">Upcoming</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-        // Update table display based on current page
-        function updateTableDisplay(tableKey) {
-            const pagination = paginationData[tableKey];
-            const start = (pagination.currentPage - 1) * pagination.perPage;
-            const end = start + pagination.perPage;
+      <!-- Pending Assignments -->
+      <div class="section-block">
+        <div class="section-header">
+          <h3>Pending Assignments</h3>
+        </div>
+        <div class="table-container">
+          <table class="employees-biodata-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Due Date</th>
+                <th>Batch / Session</th>
+                <th>Max Score</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Python Basics Project</td>
+                <td>15 Jan 2026</td>
+                <td>Python Full Stack / Python Fundamentals</td>
+                <td>100</td>
+                <td><span class="status-badge pending">Not Submitted</span></td>
+                <td><a href="#" class="btn btn-primary btn-sm">Submit Now</a></td>
+              </tr>
+              <tr>
+                <td>Simple Calculator App</td>
+                <td>20 Jan 2026</td>
+                <td>Python Full Stack / Functions & Modules</td>
+                <td>80</td>
+                <td><span class="status-badge ongoing">In Progress</span></td>
+                <td><a href="#" class="btn btn-primary btn-sm">Continue</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {% endif %}
 
-            let tbody;
-            if (tableKey === 'frontend') tbody = document.querySelector('.frontend-tbody');
-            else if (tableKey === 'fullstack') tbody = document.querySelector('.fullstack-tbody');
-            else if (tableKey === 'cloud') tbody = document.querySelector('.cloud-tbody');
-            else if (tableKey === 'data') tbody = document.querySelector('.data-tbody');
+  </div>
+</div>
+ 
 
-            const rows = tbody.querySelectorAll('tr');
-            rows.forEach((row, index) => {
-                row.style.display = (index >= start && index < end) ? '' : 'none';
-            });
 
-            const paginationDiv = document.querySelector(`.table-pagination[data-table="${tableKey}"]`);
-            paginationDiv.querySelector('.current-page').textContent = pagination.currentPage;
 
-            // Disable/enable buttons
-            paginationDiv.querySelector('button:first-child').disabled = pagination.currentPage === 1;
-            const totalPages = Math.ceil(rows.length / pagination.perPage);
-            paginationDiv.querySelector('button:last-child').disabled = pagination.currentPage === totalPages;
-        }
 
-        // Next page
-        function nextPage(tableKey) {
-            const pagination = paginationData[tableKey];
-            let tbody;
-            if (tableKey === 'frontend') tbody = document.querySelector('.frontend-tbody');
-            else if (tableKey === 'fullstack') tbody = document.querySelector('.fullstack-tbody');
-            else if (tableKey === 'cloud') tbody = document.querySelector('.cloud-tbody');
-            else if (tableKey === 'data') tbody = document.querySelector('.data-tbody');
+<script>
+const itemsPerPage = 10;
 
-            const totalPages = Math.ceil(tbody.querySelectorAll('tr').length / pagination.perPage);
-            if (pagination.currentPage < totalPages) {
-                pagination.currentPage++;
-                updateTableDisplay(tableKey);
-            }
-        }
+// Generic pagination function
+function paginateTable(tableId, paginationId) {
+  const table = document.querySelector(tableId);
+  const tbody = table.querySelector('tbody');
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+  const totalItems = rows.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-        // Previous page
-        function previousPage(tableKey) {
-            const pagination = paginationData[tableKey];
-            if (pagination.currentPage > 1) {
-                pagination.currentPage--;
-                updateTableDisplay(tableKey);
-            }
-        }
+  let currentPage = 1;
 
-       
+  function showPage(page) {
+    rows.forEach((row, index) => {
+      row.style.display = (index >= (page - 1) * itemsPerPage && index < page * itemsPerPage) ? '' : 'none';
+    });
 
-        // Search all tables
-        function searchAllTables() {
-            const searchTerm = document.getElementById('searchTraining').value.toLowerCase();
-            const allRows = document.querySelectorAll('tbody tr');
-            
-            allRows.forEach(row => {
-                const employeeName = row.dataset.employee ? row.dataset.employee.toLowerCase() : '';
-                const employeeId = row.dataset.employeeId ? row.dataset.employeeId.toLowerCase() : '';
-                const matches = employeeName.includes(searchTerm) || employeeId.includes(searchTerm);
-                row.style.display = matches ? '' : 'none';
-            });
-        }
+    // Update pagination controls
+    const pagination = document.getElementById(paginationId);
+    pagination.innerHTML = '';
 
-        // Initialize all tables on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            initializePagination('frontend');
-            initializePagination('fullstack');
-            initializePagination('cloud');
-            initializePagination('data');
-        });
-    </script>
+    if (totalPages <= 1) return;
+
+    const prevBtn = document.createElement('button');
+    prevBtn.className = 'pagination-btn';
+    prevBtn.textContent = 'Previous';
+    prevBtn.disabled = page === 1;
+    prevBtn.onclick = () => { currentPage--; showPage(currentPage); };
+
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'pagination-btn';
+    nextBtn.textContent = 'Next';
+    nextBtn.disabled = page === totalPages;
+    nextBtn.onclick = () => { currentPage++; showPage(currentPage); };
+
+    const info = document.createElement('span');
+    info.className = 'page-info';
+    info.textContent = `Page ${page} of ${totalPages} (${totalItems} total)`;
+
+    const controls = document.createElement('div');
+    controls.className = 'pagination-controls';
+    controls.appendChild(prevBtn);
+    controls.appendChild(info);
+    controls.appendChild(nextBtn);
+
+    pagination.appendChild(controls);
+  }
+
+  showPage(1);
+}
+
+// Tab switching
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+    document.getElementById(btn.dataset.tab).classList.add('active');
+
+    // Re-apply pagination when tab becomes active
+    if (btn.dataset.tab === 'batches') paginateTable('#batches table', 'batches-pagination');
+    if (btn.dataset.tab === 'sessions') paginateTable('#sessions table', 'sessions-pagination');
+    if (btn.dataset.tab === 'assignments') paginateTable('#assignments table', 'assignments-pagination');
+  });
+});
+
+// Initialize pagination on load
+paginateTable('#batches table', 'batches-pagination');
+</script>
+
+
+
 {% endblock %}
