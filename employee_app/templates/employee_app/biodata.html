@@ -79,6 +79,9 @@
                 <a href="{% url 'employee_app:edit_biodata' employee.pk %}">
                   <button class="action-icon-btn" title="Edit">✏️</button>
                 </a>
+                <a href="{% url 'employee_app:delete_approved_employee' employee.pk %}">
+                  <button class="action-icon-btn" title="Delete">🗑️</button>
+                </a>
               </td>
             </tr>
             {% empty %}

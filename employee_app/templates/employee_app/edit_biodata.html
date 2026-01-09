@@ -4,11 +4,21 @@
 
 {% block content %}
 <div class="content-area">
-  <div class="content-card" style="max-width:1100px;">
+  <div class="content-card" style="max-width: 1100px;">
     <div class="card-header">
       <h2>Edit: {{ bio.first_name }} {{ bio.middle_name|default:'' }} {{ bio.last_name }}</h2>
       <p class="card-subtitle">Employee ID: {{ bio.employee_id|default:"Not assigned" }} • Status: Approved</p>
     </div>
+
+    {% if messages %}
+      <div style="margin: 20px 0;">
+        {% for message in messages %}
+          <div style="padding: 15px; margin-bottom: 10px; border-radius: 5px; background: #d4edda; color: #155724;">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
 
     <form method="POST" enctype="multipart/form-data">
       {% csrf_token %}
@@ -19,172 +29,166 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label>First Name *</label>
-            <input name="first_name" type="text" value="{{ bio.first_name }}" placeholder="Enter first name" required>
+            <label for="{{ form.first_name.id_for_label }}">First Name *</label>
+            {{ form.first_name }}
+            {{ form.first_name.errors }}
           </div>
           <div class="form-group">
-            <label>Middle Name</label>
-            <input name="middle_name" type="text" value="{{ bio.middle_name }}" placeholder="Enter middle name (optional)">
+            <label for="{{ form.middle_name.id_for_label }}">Middle Name</label>
+            {{ form.middle_name }}
+            {{ form.middle_name.errors }}
           </div>
           <div class="form-group">
-            <label>Last Name *</label>
-            <input name="last_name" type="text" value="{{ bio.last_name }}" placeholder="Enter last name" required>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>Date of Birth</label>
-            <input name="dob" type="date" value="{{ bio.dob|date:'Y-m-d'|default:'' }}">
-          </div>
-          <div class="form-group">
-            <label>Gender</label>
-            <select name="gender">
-              <option value="">Select Gender</option>
-              <option value="Male" {% if bio.gender == 'Male' %}selected{% endif %}>Male</option>
-              <option value="Female" {% if bio.gender == 'Female' %}selected{% endif %}>Female</option>
-              <option value="Non-binary" {% if bio.gender == 'Non-binary' %}selected{% endif %}>Non-binary</option>
-              <option value="Prefer not to say" {% if bio.gender == 'Prefer not to say' %}selected{% endif %}>Prefer not to say</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Marital Status</label>
-            <select name="marital_status">
-              <option value="">Select Marital Status</option>
-              <option value="Single" {% if bio.marital_status == 'Single' %}selected{% endif %}>Single</option>
-              <option value="Married" {% if bio.marital_status == 'Married' %}selected{% endif %}>Married</option>
-              <option value="Divorced" {% if bio.marital_status == 'Divorced' %}selected{% endif %}>Divorced</option>
-              <option value="Widowed" {% if bio.marital_status == 'Widowed' %}selected{% endif %}>Widowed</option>
-            </select>
+            <label for="{{ form.last_name.id_for_label }}">Last Name *</label>
+            {{ form.last_name }}
+            {{ form.last_name.errors }}
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label>Contact Number *</label>
-            <input name="contact_number" type="tel" value="{{ bio.contact_number }}" placeholder="e.g., 9876543210" required>
+            <label for="{{ form.dob.id_for_label }}">Date of Birth</label>
+            {{ form.dob }}
+            {{ form.dob.errors }}
           </div>
           <div class="form-group">
-            <label>Emergency Contact</label>
-            <input name="emergency_contact" type="tel" value="{{ bio.emergency_contact }}" placeholder="e.g., 9876543210 (optional)">
+            <label for="{{ form.gender.id_for_label }}">Gender</label>
+            {{ form.gender }}
+            {{ form.gender.errors }}
           </div>
           <div class="form-group">
-            <label>Blood Group</label>
-            <select name="blood_group">
-              <option value="">Select Blood Group</option>
-              <option value="A+" {% if bio.blood_group == 'A+' %}selected{% endif %}>A+</option>
-              <option value="A-" {% if bio.blood_group == 'A-' %}selected{% endif %}>A-</option>
-              <option value="B+" {% if bio.blood_group == 'B+' %}selected{% endif %}>B+</option>
-              <option value="B-" {% if bio.blood_group == 'B-' %}selected{% endif %}>B-</option>
-              <option value="AB+" {% if bio.blood_group == 'AB+' %}selected{% endif %}>AB+</option>
-              <option value="AB-" {% if bio.blood_group == 'AB-' %}selected{% endif %}>AB-</option>
-              <option value="O+" {% if bio.blood_group == 'O+' %}selected{% endif %}>O+</option>
-              <option value="O-" {% if bio.blood_group == 'O-' %}selected{% endif %}>O-</option>
-            </select>
+            <label for="{{ form.marital_status.id_for_label }}">Marital Status</label>
+            {{ form.marital_status }}
+            {{ form.marital_status.errors }}
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label>Personal Email *</label>
-            <input name="personal_email" type="email" value="{{ bio.personal_email }}" placeholder="e.g., employee@example.com" required>
+            <label for="{{ form.contact_number.id_for_label }}">Contact Number *</label>
+            {{ form.contact_number }}
+            {{ form.contact_number.errors }}
           </div>
           <div class="form-group">
-            <label>Post Applied For</label>
-            <select name="post_applied_for">
-              <option value="">Select Position</option>
-              <option value="junior_developer" {% if bio.post_applied_for == 'junior_developer' %}selected{% endif %}>Junior Developer</option>
-              <option value="frontend_developer" {% if bio.post_applied_for == 'frontend_developer' %}selected{% endif %}>Frontend Developer</option>
-              <option value="full_stack_developer" {% if bio.post_applied_for == 'full_stack_developer' %}selected{% endif %}>Full Stack Developer</option>
-              <option value="qa_engineer" {% if bio.post_applied_for == 'qa_engineer' %}selected{% endif %}>QA Engineer</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Address Fields -->
-        <div class="form-row">
-          <div class="form-group">
-            <label>Address Line 1</label>
-            <input name="address_line1" type="text" value="{{ bio.address_line1 }}" placeholder="House No, Street name">
+            <label for="{{ form.emergency_contact.id_for_label }}">Emergency Contact</label>
+            {{ form.emergency_contact }}
+            {{ form.emergency_contact.errors }}
           </div>
           <div class="form-group">
-            <label>Address Line 2</label>
-            <input name="address_line2" type="text" value="{{ bio.address_line2 }}" placeholder="Apartment, Landmark (optional)">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>City</label>
-            <input name="city" type="text" value="{{ bio.city }}" placeholder="e.g., Mumbai">
-          </div>
-          <div class="form-group">
-            <label>State / Province / Region</label>
-            <input name="state" type="text" value="{{ bio.state }}" placeholder="e.g., Maharashtra">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Postal Code</label>
-            <input name="postal_code" type="text" value="{{ bio.postal_code }}" placeholder="e.g., 400001">
-          </div>
-          <div class="form-group">
-            <label>Country</label>
-            <select name="country">
-              <option value="">Select Country</option>
-              <option value="india" {% if bio.country == 'india' %}selected{% endif %}>India</option>
-              <option value="usa" {% if bio.country == 'usa' %}selected{% endif %}>USA</option>
-              <option value="canada" {% if bio.country == 'canada' %}selected{% endif %}>Canada</option>
-              <option value="uk" {% if bio.country == 'uk' %}selected{% endif %}>UK</option>
-              <option value="australia" {% if bio.country == 'australia' %}selected{% endif %}>Australia</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Aadhar & PAN -->
-        <div class="form-row">
-          <div class="form-group">
-            <label>Aadhar Card No</label>
-            <input name="aadhar_no" type="text" value="{{ bio.aadhar_no }}" placeholder="e.g., 1234 5678 9012">
-          </div>
-          <div class="form-group">
-            <label>PAN Card No</label>
-            <input name="pan_no" type="text" value="{{ bio.pan_no }}" placeholder="e.g., ABCDE1234F" style="text-transform:uppercase;">
-          </div>
-        </div>
-
-        <!-- Bank Details -->
-        <div class="form-row">
-          <div class="form-group">
-            <label>Bank Name</label>
-            <input name="bank_name" type="text" value="{{ bio.bank_name }}" placeholder="e.g., State Bank of India">
-          </div>
-          <div class="form-group">
-            <label>Bank Branch Name</label>
-            <input name="bank_branch" type="text" value="{{ bio.bank_branch }}" placeholder="e.g., Andheri West Branch">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Account Number</label>
-            <input name="account_number" type="text" value="{{ bio.account_number }}" placeholder="e.g., 123456789012">
-          </div>
-          <div class="form-group">
-            <label>Account Name</label>
-            <input name="account_name" type="text" value="{{ bio.account_name }}" placeholder="e.g., John Doe">
-          </div>
-          <div class="form-group">
-            <label>IFSC Code</label>
-            <input name="ifsc_code" type="text" value="{{ bio.ifsc_code }}" placeholder="e.g., SBIN0001234">
+            <label for="{{ form.blood_group.id_for_label }}">Blood Group</label>
+            {{ form.blood_group }}
+            {{ form.blood_group.errors }}
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label>Fresher/Experience *</label>
-            <select name="experience_type" required>
-              <option value="fresher" {% if bio.experience_type == 'fresher' %}selected{% endif %}>Fresher</option>
-              <option value="experienced" {% if bio.experience_type == 'experienced' %}selected{% endif %}>Experienced</option>
-            </select>
+            <label for="{{ form.personal_email.id_for_label }}">Personal Email *</label>
+            {{ form.personal_email }}
+            {{ form.personal_email.errors }}
+          </div>
+          <div class="form-group">
+            <label for="{{ form.post_applied_for.id_for_label }}">Post Applied For</label>
+            {{ form.post_applied_for }}
+            {{ form.post_applied_for.errors }}
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="{{ form.experience_type.id_for_label }}">Experience Type *</label>
+            {{ form.experience_type }}
+            {{ form.experience_type.errors }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Address -->
+      <div class="form-section">
+        <h3 class="section-title">Address</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="{{ form.address_line1.id_for_label }}">Address Line 1</label>
+            {{ form.address_line1 }}
+            {{ form.address_line1.errors }}
+          </div>
+          <div class="form-group">
+            <label for="{{ form.address_line2.id_for_label }}">Address Line 2</label>
+            {{ form.address_line2 }}
+            {{ form.address_line2.errors }}
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="{{ form.city.id_for_label }}">City</label>
+            {{ form.city }}
+            {{ form.city.errors }}
+          </div>
+          <div class="form-group">
+            <label for="{{ form.state.id_for_label }}">State / Province</label>
+            {{ form.state }}
+            {{ form.state.errors }}
+          </div>
+          <div class="form-group">
+            <label for="{{ form.postal_code.id_for_label }}">Postal Code</label>
+            {{ form.postal_code }}
+            {{ form.postal_code.errors }}
+          </div>
+          <div class="form-group">
+            <label for="{{ form.country.id_for_label }}">Country</label>
+            {{ form.country }}
+            {{ form.country.errors }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Aadhar & PAN -->
+      <div class="form-section">
+        <h3 class="section-title">Aadhar & PAN</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="{{ form.aadhar_no.id_for_label }}">Aadhar Card No</label>
+            {{ form.aadhar_no }}
+            {{ form.aadhar_no.errors }}
+          </div>
+          <div class="form-group">
+            <label for="{{ form.pan_no.id_for_label }}">PAN Card No</label>
+            {{ form.pan_no }}
+            {{ form.pan_no.errors }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Bank Details -->
+      <div class="form-section">
+        <h3 class="section-title">Bank Details</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="{{ form.bank_name.id_for_label }}">Bank Name</label>
+            {{ form.bank_name }}
+            {{ form.bank_name.errors }}
+          </div>
+          <div class="form-group">
+            <label for="{{ form.bank_branch.id_for_label }}">Bank Branch Name</label>
+            {{ form.bank_branch }}
+            {{ form.bank_branch.errors }}
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="{{ form.account_number.id_for_label }}">Account Number</label>
+            {{ form.account_number }}
+            {{ form.account_number.errors }}
+          </div>
+          <div class="form-group">
+            <label for="{{ form.account_name.id_for_label }}">Account Name</label>
+            {{ form.account_name }}
+            {{ form.account_name.errors }}
+          </div>
+          <div class="form-group">
+            <label for="{{ form.ifsc_code.id_for_label }}">IFSC Code</label>
+            {{ form.ifsc_code }}
+            {{ form.ifsc_code.errors }}
           </div>
         </div>
       </div>
@@ -194,48 +198,38 @@
         <h3 class="section-title">Professional Details</h3>
         <div class="form-row">
           <div class="form-group">
-            <label>Employee ID *</label>
-            <input name="employee_id" value="{{ bio.employee_id|default:'' }}" placeholder="e.g., EMP-2025-001" required>
+            <label for="{{ form.employee_id.id_for_label }}">Employee ID *</label>
+            {{ form.employee_id }}
+            {{ form.employee_id.errors }}
           </div>
           <div class="form-group">
-            <label>Official Email *</label>
-            <input name="official_email" type="email" value="{{ bio.official_email|default:'' }}" placeholder="e.g., employee@stackly.com" required>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Designation *</label>
-            <select name="designation" required>
-              <option value="">Select Designation</option>
-              <option value="Junior Developer" {% if bio.designation == 'Junior Developer' %}selected{% endif %}>Junior Developer</option>
-              <option value="Frontend Developer" {% if bio.designation == 'Frontend Developer' %}selected{% endif %}>Frontend Developer</option>
-              <option value="Full Stack Developer" {% if bio.designation == 'Full Stack Developer' %}selected{% endif %}>Full Stack Developer</option>
-              <option value="QA Engineer" {% if bio.designation == 'QA Engineer' %}selected{% endif %}>QA Engineer</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Department *</label>
-            <select name="department" required>
-              <option value="">Select Department</option>
-              <option value="Software Development" {% if bio.department == 'Software Development' %}selected{% endif %}>Software Development</option>
-              <option value="Training & Development" {% if bio.department == 'Training & Development' %}selected{% endif %}>Training & Development</option>
-              <option value="HR" {% if bio.department == 'HR' %}selected{% endif %}>HR</option>
-            </select>
+            <label for="{{ form.official_email.id_for_label }}">Official Email *</label>
+            {{ form.official_email }}
+            {{ form.official_email.errors }}
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>Date of Joining *</label>
-            <input type="date" name="doj" value="{{ bio.doj|date:'Y-m-d'|default:'' }}" required>
+            <label for="{{ form.designation.id_for_label }}">Designation *</label>
+            {{ form.designation }}
+            {{ form.designation.errors }}
           </div>
           <div class="form-group">
-            <label>Work Mode</label>
-            <select name="work_mode">
-              <option value="">Select Work Mode</option>
-              <option value="Remote" {% if bio.work_mode == 'Remote' %}selected{% endif %}>Remote</option>
-              <option value="Onsite" {% if bio.work_mode == 'Onsite' %}selected{% endif %}>Onsite</option>
-              <option value="Hybrid" {% if bio.work_mode == 'Hybrid' %}selected{% endif %}>Hybrid</option>
-            </select>
+            <label for="{{ form.department.id_for_label }}">Department *</label>
+            {{ form.department }}
+            {{ form.department.errors }}
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="{{ form.doj.id_for_label }}">Date of Joining *</label>
+            {{ form.doj }}
+            {{ form.doj.errors }}
+          </div>
+          <div class="form-group">
+            <label for="{{ form.work_mode.id_for_label }}">Work Mode</label>
+            {{ form.work_mode }}
+            {{ form.work_mode.errors }}
           </div>
         </div>
       </div>
@@ -245,12 +239,14 @@
         <h3 class="section-title">Skills</h3>
         <div class="form-row">
           <div class="form-group">
-            <label>Technical Skills *</label>
-            <textarea name="technical_skills" rows="3" placeholder="e.g., Python, React, Django, AWS, SQL" required>{{ bio.technical_skills }}</textarea>
+            <label for="{{ form.technical_skills.id_for_label }}">Technical Skills *</label>
+            {{ form.technical_skills }}
+            {{ form.technical_skills.errors }}
           </div>
           <div class="form-group">
-            <label>Soft Skills</label>
-            <textarea name="soft_skills" rows="3" placeholder="e.g., Communication, Teamwork, Leadership, Problem Solving">{{ bio.soft_skills }}</textarea>
+            <label for="{{ form.soft_skills.id_for_label }}">Soft Skills</label>
+            {{ form.soft_skills }}
+            {{ form.soft_skills.errors }}
           </div>
         </div>
       </div>
@@ -260,20 +256,210 @@
         <h3 class="section-title">References</h3>
         <div class="form-row">
           <div class="form-group">
-            <label>Name</label>
-            <input name="reference_name" type="text" value="{{ bio.reference_name }}" placeholder="e.g., Mr. Rajesh Kumar">
+            <label for="{{ form.reference_name.id_for_label }}">Reference Name</label>
+            {{ form.reference_name }}
+            {{ form.reference_name.errors }}
           </div>
           <div class="form-group">
-            <label>Contact Number</label>
-            <input name="reference_contact" type="tel" value="{{ bio.reference_contact }}" placeholder="e.g., 9876543210">
+            <label for="{{ form.reference_contact.id_for_label }}">Reference Contact</label>
+            {{ form.reference_contact }}
+            {{ form.reference_contact.errors }}
           </div>
         </div>
       </div>
 
+      <!-- Education (Basic fields - add more if needed) -->
+    <!-- Education -->
+<div class="form-section">
+  <h3 class="section-title">Education</h3>
+
+  <!-- SSC -->
+  <div class="form-row">
+    <div class="form-group">
+      <label for="{{ form.ssc_school.id_for_label }}">SSC School</label>
+      {{ form.ssc_school }}
+      {{ form.ssc_school.errors }}
+    </div>
+    <div class="form-group">
+      <label for="{{ form.ssc_year.id_for_label }}">SSC Year</label>
+      {{ form.ssc_year }}
+      {{ form.ssc_year.errors }}
+    </div>
+    <div class="form-group">
+      <label for="{{ form.ssc_grade.id_for_label }}">SSC Grade</label>
+      {{ form.ssc_grade }}
+      {{ form.ssc_grade.errors }}
+    </div>
+    <div class="form-group">
+      <label for="{{ form.ssc_marksheet.id_for_label }}">SSC Marksheet</label>
+      {% if bio.ssc_marksheet %}
+        <p>Current: <a href="{{ bio.ssc_marksheet.url }}" target="_blank">View Current SSC Marksheet</a></p>
+      {% endif %}
+      {{ form.ssc_marksheet }}
+      {{ form.ssc_marksheet.errors }}
+    </div>
+  </div>
+
+  <!-- SSLC -->
+  <div class="form-row">
+    <div class="form-group">
+      <label for="{{ form.sslc_school.id_for_label }}">SSLC School</label>
+      {{ form.sslc_school }}
+      {{ form.sslc_school.errors }}
+    </div>
+    <div class="form-group">
+      <label for="{{ form.sslc_year.id_for_label }}">SSLC Year</label>
+      {{ form.sslc_year }}
+      {{ form.sslc_year.errors }}
+    </div>
+    <div class="form-group">
+      <label for="{{ form.sslc_grade.id_for_label }}">SSLC Grade</label>
+      {{ form.sslc_grade }}
+      {{ form.sslc_grade.errors }}
+    </div>
+    <div class="form-group">
+      <label for="{{ form.sslc_marksheet.id_for_label }}">SSLC Marksheet</label>
+      {% if bio.sslc_marksheet %}
+        <p>Current: <a href="{{ bio.sslc_marksheet.url }}" target="_blank">View Current SSLC Marksheet</a></p>
+      {% endif %}
+      {{ form.sslc_marksheet }}
+      {{ form.sslc_marksheet.errors }}
+    </div>
+  </div>
+
+  <!-- UG -->
+  <div class="form-row">
+    <div class="form-group">
+      <label for="{{ form.ug_degree.id_for_label }}">UG Degree</label>
+      {{ form.ug_degree }}
+      {{ form.ug_degree.errors }}
+    </div>
+    <div class="form-group">
+      <label for="{{ form.ug_institution.id_for_label }}">UG Institution</label>
+      {{ form.ug_institution }}
+      {{ form.ug_institution.errors }}
+    </div>
+    <div class="form-group">
+      <label for="{{ form.ug_year.id_for_label }}">UG Year</label>
+      {{ form.ug_year }}
+      {{ form.ug_year.errors }}
+    </div>
+    <div class="form-group">
+      <label for="{{ form.ug_documents.id_for_label }}">UG Documents</label>
+      {% if bio.ug_documents %}
+        <p>Current: <a href="{{ bio.ug_documents.url }}" target="_blank">View Current UG Documents</a></p>
+      {% endif %}
+      {{ form.ug_documents }}
+      {{ form.ug_documents.errors }}
+    </div>
+  </div>
+
+  <!-- PG -->
+  <div class="form-row">
+    <div class="form-group">
+      <label for="{{ form.pg_degree.id_for_label }}">PG Degree</label>
+      {{ form.pg_degree }}
+      {{ form.pg_degree.errors }}
+    </div>
+    <div class="form-group">
+      <label for="{{ form.pg_institution.id_for_label }}">PG Institution</label>
+      {{ form.pg_institution }}
+      {{ form.pg_institution.errors }}
+    </div>
+    <div class="form-group">
+      <label for="{{ form.pg_year.id_for_label }}">PG Year</label>
+      {{ form.pg_year }}
+      {{ form.pg_year.errors }}
+    </div>
+    <div class="form-group">
+      <label for="{{ form.pg_documents.id_for_label }}">PG Documents</label>
+      {% if bio.pg_documents %}
+        <p>Current: <a href="{{ bio.pg_documents.url }}" target="_blank">View Current PG Documents</a></p>
+      {% endif %}
+      {{ form.pg_documents }}
+      {{ form.pg_documents.errors }}
+    </div>
+  </div>
+
+  <!-- Certification -->
+  <div class="form-row">
+    <div class="form-group">
+      <label for="{{ form.cert_course.id_for_label }}">Certification Course</label>
+      {{ form.cert_course }}
+      {{ form.cert_course.errors }}
+    </div>
+    <div class="form-group">
+      <label for="{{ form.cert_institution.id_for_label }}">Certification Institution</label>
+      {{ form.cert_institution }}
+      {{ form.cert_institution.errors }}
+    </div>
+    <div class="form-group">
+      <label for="{{ form.cert_year.id_for_label }}">Certification Year</label>
+      {{ form.cert_year }}
+      {{ form.cert_year.errors }}
+    </div>
+    <div class="form-group">
+      <label for="{{ form.cert_document.id_for_label }}">Certification Document</label>
+      {% if bio.cert_document %}
+        <p>Current: <a href="{{ bio.cert_document.url }}" target="_blank">View Current Certification</a></p>
+      {% endif %}
+      {{ form.cert_document }}
+      {{ form.cert_document.errors }}
+    </div>
+  </div>
+</div>
+
+      <!-- Documents (Optional Re-upload) -->
+      <div class="form-section">
+        <h3 class="section-title">Documents (Leave blank to keep current)</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="{{ form.photo.id_for_label }}">Photo</label>
+            {% if bio.photo %}
+              <p>Current: <a href="{{ bio.photo.url }}" target="_blank">View Current Photo</a></p>
+            {% endif %}
+            {{ form.photo }}
+            {{ form.photo.errors }}
+          </div>
+
+          <div class="form-group">
+            <label for="{{ form.resume.id_for_label }}">Resume</label>
+            {% if bio.resume %}
+              <p>Current: <a href="{{ bio.resume.url }}" target="_blank">View Current Resume</a></p>
+            {% endif %}
+            {{ form.resume }}
+            {{ form.resume.errors }}
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="{{ form.aadhar_card.id_for_label }}">Aadhar Card</label>
+            {% if bio.aadhar_card %}
+              <p>Current: <a href="{{ bio.aadhar_card.url }}" target="_blank">View Current Aadhar</a></p>
+            {% endif %}
+            {{ form.aadhar_card }}
+            {{ form.aadhar_card.errors }}
+          </div>
+
+          <div class="form-group">
+            <label for="{{ form.pan_card.id_for_label }}">PAN Card</label>
+            {% if bio.pan_card %}
+              <p>Current: <a href="{{ bio.pan_card.url }}" target="_blank">View Current PAN</a></p>
+            {% endif %}
+            {{ form.pan_card }}
+            {{ form.pan_card.errors }}
+          </div>
+        </div>
+
+       
+      </div>
+
       <!-- Form Actions -->
-      <div class="form-actions" style="margin:60px 0; text-align:center;">
-        <button type="submit" class="btn btn-primary" style="padding:16px 60px; font-size:17px;">Save Changes</button>
-        <a href="{% url 'employee_app:view_biodata' bio.pk %}" class="btn btn-secondary" style="padding:16px 40px; margin-left:20px;">Cancel</a>
+      <div class="form-actions" style="margin: 60px 0; text-align: center;">
+        <button type="submit" class="btn btn-primary" style="padding: 16px 60px; font-size: 17px;">Save Changes</button>
+        <a href="{% url 'employee_app:view_biodata' bio.pk %}" class="btn btn-secondary" style="padding: 16px 40px; margin-left: 20px;">Cancel</a>
       </div>
     </form>
   </div>

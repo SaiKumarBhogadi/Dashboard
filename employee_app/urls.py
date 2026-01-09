@@ -56,4 +56,11 @@ urlpatterns = [
     path('assignment-form/', views.assignment_form, name='create_assignment'),
     path('assignment-edit/', views.edit_assignment, name='edit_assignment'),
     path('assignment-details/', views.assignment_details, name='assignment_details'),
+
+    path('employee/dashboard/', views.employee_dashboard, name='employee_dashboard'),
+    path('employee/profile/', views.my_profile, name='my_profile'),
+    path('employee/profile/edit/', views.edit_my_profile, name='edit_my_profile'),
+
+    path('biodata/delete-pending/<int:pk>/', views.delete_pending_request, name='delete_pending_request'),
+path('biodata/delete-approved/<int:pk>/', views.delete_approved_employee, name='delete_approved_employee'),
 ]

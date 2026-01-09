@@ -60,6 +60,7 @@
               <td><span class="status-badge {{ request.get_status_class }}">{{ request.get_status_display }}</span></td>
               <td>
                 <a href="{% url 'employee_app:review_biodata_detail' request.pk %}" class="action-icon-btn" title="Review">👁️</a>
+                <a href="{% url 'employee_app:delete_pending_request' request.pk %}" class="action-icon-btn" title="Delete">🗑️</a>
               </td>
             </tr>
             {% empty %}

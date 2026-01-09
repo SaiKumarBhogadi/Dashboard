@@ -37,6 +37,7 @@ class CustomUser(AbstractUser):
         ('admin', 'Admin (HR)'),
         ('scrum_master', 'Scrum Master'),
         ('trainer', 'Trainer'),
+        ('employee', 'Employee'),
     )
 
     DEPARTMENT_CHOICES = (
@@ -83,7 +84,7 @@ class BioDataRequest(models.Model):
 
     BLOOD_GROUP_CHOICES = (
         ('A+', 'A+'),
-        ('A-', 'A-'),
+        ('A-', 'A-'), 
         ('B+', 'B+'),
         ('B-', 'B-'),
         ('AB+', 'AB+'),
@@ -129,6 +130,14 @@ class BioDataRequest(models.Model):
     )
 
     # Personal
+    user = models.OneToOneField(
+        'CustomUser',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='bio_data_request',
+        verbose_name="Linked Employee Account"
+    )
     first_name = models.CharField(max_length=100)
     middle_name = models.CharField(max_length=100, blank=True)
     last_name = models.CharField(max_length=100)
@@ -241,3 +250,40 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"{self.title} → {self.recipient.email if self.recipient else 'Deleted'}"
+    
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+# Flag to prevent infinite recursion
+_syncing = False
+
+@receiver(post_save, sender=CustomUser)
+def sync_user_to_biodata(sender, instance, **kwargs):
+    global _syncing
+    if _syncing:
+        return  # Prevent loop
+    if hasattr(instance, 'bio_data_request'):
+        _syncing = True
+        try:
+            biodata = instance.bio_data_request
+            biodata.department = instance.department
+            biodata.contact_number = instance.phone or biodata.contact_number
+            biodata.save(update_fields=['department', 'contact_number'])
+        finally:
+            _syncing = False
+
+@receiver(post_save, sender=BioDataRequest)
+def sync_biodata_to_user(sender, instance, **kwargs):
+    global _syncing
+    if _syncing:
+        return
+    if instance.user:
+        _syncing = True
+        try:
+            user = instance.user
+            user.department = instance.department
+            user.phone = instance.contact_number or user.phone
+            user.save(update_fields=['department', 'phone'])
+        finally:
+            _syncing = False

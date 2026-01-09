@@ -152,53 +152,54 @@
 
       <!-- PROFESSIONAL DETAILS (Hidden initially - shown after Approve click) -->
       <div class="form-section" id="hrDetailsSection" style="display: none;">
-        <h3 class="section-title">Professional Details (HR to Fill)</h3>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Employee ID *</label>
-            <input name="employee_id" value="{{ bio.employee_id|default:'' }}" placeholder="e.g., EMP-2025-156" >
+          <h3 class="section-title">Professional Details (HR to Fill)</h3>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="{{ form.employee_id.id_for_label }}">Employee ID *</label>
+              {{ form.employee_id }}
+              {{ form.employee_id.errors }}
+            </div>
+            <div class="form-group">
+              <label for="{{ form.official_email.id_for_label }}">Official Email *</label>
+              {{ form.official_email }}
+              {{ form.official_email.errors }}
+            </div>
           </div>
-          <div class="form-group">
-            <label>Official Email *</label>
-            <input name="official_email" type="email" value="{{ bio.official_email|default:'' }}" placeholder="employee@stackly.com" >
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="{{ form.designation.id_for_label }}">Designation *</label>
+              {{ form.designation }}
+              {{ form.designation.errors }}
+            </div>
+            <div class="form-group">
+              <label for="{{ form.department.id_for_label }}">Department *</label>
+              {{ form.department }}
+              {{ form.department.errors }}
+            </div>
           </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Designation *</label>
-            <select name="designation" >
-              <option value="">Select</option>
-              <option {% if bio.designation == 'Junior Developer' %}selected{% endif %}>Junior Developer</option>
-              <option {% if bio.designation == 'Frontend Developer' %}selected{% endif %}>Frontend Developer</option>
-              <option {% if bio.designation == 'Full Stack Developer' %}selected{% endif %}>Full Stack Developer</option>
-              <option {% if bio.designation == 'QA Engineer' %}selected{% endif %}>QA Engineer</option>
-            </select>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="{{ form.doj.id_for_label }}">Date of Joining *</label>
+              {{ form.doj }}
+              {{ form.doj.errors }}
+            </div>
+            <div class="form-group">
+              <label for="{{ form.work_mode.id_for_label }}">Work Mode</label>
+              {{ form.work_mode }}
+              {{ form.work_mode.errors }}
+            </div>
           </div>
-          <div class="form-group">
-            <label>Department *</label>
-            <select name="department" >
-              <option value="">Select</option>
-              <option {% if bio.department == 'Software Development' %}selected{% endif %}>Software Development</option>
-              <option {% if bio.department == 'Training & Development' %}selected{% endif %}>Training & Development</option>
-              <option {% if bio.department == 'HR' %}selected{% endif %}>HR</option>
-            </select>
+
+          <div class="form-row">
+            <div class="form-group">
+              {{ form.create_account }}
+              <label for="{{ form.create_account.id_for_label }}">Create Employee Account?</label>
+            </div>
           </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Date of Joining *</label>
-            <input type="date" name="doj" value="{{ bio.doj|date:'Y-m-d'|default:'' }}" >
-          </div>
-          <div class="form-group">
-            <label>Work Mode</label>
-            <select name="work_mode">
-              <option value="Remote" {% if bio.work_mode == 'Remote' %}selected{% endif %}>Remote</option>
-              <option value="Onsite" {% if bio.work_mode == 'Onsite' %}selected{% endif %}>Onsite</option>
-              <option value="Hybrid" {% if bio.work_mode == 'Hybrid' %}selected{% endif %}>Hybrid</option>
-            </select>
-          </div>
-        </div>
-      </div>
+      </div>  
 
       <!-- REJECT REASON (Hidden initially) -->
       <div class="form-section reject-reason" id="rejectReason" style="display:none;">

@@ -48,6 +48,8 @@ from employee_app.utils import create_notification, has_permission
 
 def login_view(request):
     if request.user.is_authenticated:
+        if request.user.role == 'employee':
+            return redirect('employee_app:employee_dashboard')
         return redirect('employee_app:users_manager')
 
     if request.method == 'POST':
@@ -99,7 +101,6 @@ def create_user(request):
             return redirect('employee_app:users_manager')
 
         role = request.POST.get('role')
-
         permissions = ROLE_PERMISSIONS.get(role, {})
 
         new_user = CustomUser.objects.create(
@@ -114,23 +115,40 @@ def create_user(request):
             is_active=(request.POST.get('status') == 'active')
         )
 
-        # === NOTIFICATION: New user created → notify admin & super_admin ===
-        for notifier in CustomUser.objects.filter(role__in=['admin', 'super_admin'], is_active=True):
-            link = reverse('employee_app:edit_user', args=[new_user.id])
+        # If employee, optional biodata link
+        if role == 'employee':
+            bio_id = request.POST.get('bio_data')
+            if bio_id:
+                try:
+                    bio = BioDataRequest.objects.get(id=bio_id, status='approved')
+                    if not bio.user:
+                        bio.user = new_user
+                        bio.save()
+                        messages.info(request, "Linked to selected biodata.")
+                    else:
+                        messages.warning(request, "Biodata already linked to another user.")
+                except BioDataRequest.DoesNotExist:
+                    messages.warning(request, "Selected biodata not found or not approved.")
+
+        # Notification
+        for notifier in CustomUser.objects.filter(role__in=['admin', 'super_admin']):
             create_notification(
-                recipient=notifier,
-                ntype='user_created',
-                title='New User Created',
-                message=f"User {new_user.email} ({new_user.get_role_display()}) was created by {request.user.get_full_name() or request.user.email}.",
-                link=request.build_absolute_uri(link)
+                notifier,
+                'user_created',
+                'New User Created',
+                f"{new_user.email} ({new_user.get_role_display()}) created by {request.user.email}.",
             )
 
         messages.success(request, f'User {email} created successfully.')
         return redirect('employee_app:users_manager')
 
-    return redirect('employee_app:users_manager')
+    # For GET: pass approved biodata for dropdown
+    available_biodata = BioDataRequest.objects.filter(status='approved', user__isnull=True)
+    return render(request, 'employee_app/create_user.html', {'available_biodata': available_biodata})
 
 
+
+from .forms import UserEditForm
 @login_required
 def edit_user(request, user_id):
     if not has_permission(request.user, 'users', 'edit'):
@@ -139,30 +157,29 @@ def edit_user(request, user_id):
     user = get_object_or_404(CustomUser, id=user_id)
 
     if request.method == 'POST':
-        user.full_name = request.POST.get('full_name')
-        user.phone = request.POST.get('phone')
-        user.department = request.POST.get('department') or ''
-        user.role = request.POST.get('role')
-        user.status = request.POST.get('status')
-        user.is_active = (user.status == 'active')
+        form = UserEditForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
 
-        # reset permissions if role changed
-        user.permissions = ROLE_PERMISSIONS.get(user.role, {})
-        user.save()
+            # Reset permissions if role changed
+            user.permissions = ROLE_PERMISSIONS.get(user.role, {})
+            user.save()
 
-        # === NOTIFICATION: User edited → notify ONLY the edited user ===
-        create_notification(
-            recipient=user,
-            ntype='user_updated',
-            title='Your Profile Was Updated',
-            message=f"Your account details were updated by {request.user.get_full_name() or request.user.email}.",
-            link=request.build_absolute_uri(reverse('employee_app:profile'))
-        )
+            # Notification
+            create_notification(
+                recipient=user,
+                ntype='user_updated',
+                title='Your Profile Was Updated',
+                message=f"Your account details were updated by {request.user.get_full_name() or request.user.email}.",
+                link=request.build_absolute_uri(reverse('employee_app:profile'))
+            )
 
-        messages.success(request, 'User updated successfully.')
-        return redirect('employee_app:users_manager')
+            messages.success(request, 'User updated successfully.')
+            return redirect('employee_app:users_manager')
+    else:
+        form = UserEditForm(instance=user)
 
-    return render(request, 'employee_app/edit_user.html', {'user': user})
+    return render(request, 'employee_app/edit_user.html', {'form': form, 'user': user})
 
 
 @login_required
@@ -358,7 +375,7 @@ import openpyxl
 from openpyxl.styles import Font
 
 from .models import CustomUser, BioDataRequest
-from .forms import BioDataForm, ReviewForm, EditForm
+from .forms import BioDataForm, ReviewForm
 from employee_app.permission_defaults import ROLE_PERMISSIONS
 from employee_app.utils import has_permission
 from django.core.mail import send_mail
@@ -434,6 +451,9 @@ def pending_requests(request):
     requests = BioDataRequest.objects.all().order_by('-created_at')
     return render(request, 'employee_app/pending_requests.html', {'requests': requests})
 
+
+import secrets
+import string
 @login_required
 def review_biodata_detail(request, pk):
     bio = get_object_or_404(BioDataRequest, pk=pk)
@@ -442,68 +462,74 @@ def review_biodata_detail(request, pk):
         form = ReviewForm(request.POST, instance=bio)
         if form.is_valid():
             action = request.POST.get('action')
+            create_account = form.cleaned_data.get('create_account', True)
 
             bio = form.save(commit=False)
 
             if action == 'approve':
-                # HR details are already saved by form.save()
                 bio.status = 'approved'
                 bio.approved_by = request.user
-                messages.success(request, 'Employee approved and details saved successfully!')
 
-                # Send detailed approval email with HR info
-                subject = 'Your Application Has Been Approved!'
-                message = f"""
+                if create_account and not bio.user:
+                    email = bio.official_email or bio.personal_email
+                    if CustomUser.objects.filter(email=email).exists():
+                        messages.error(request, f"Email {email} already used.")
+                    else:
+                        temp_password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(10))
+                        new_user = CustomUser.objects.create(
+                            email=email,
+                            full_name=f"{bio.first_name} {bio.middle_name or ''} {bio.last_name}".strip(),
+                            phone=bio.contact_number,  # COPY PHONE
+                            department=bio.department,  # COPY DEPARTMENT
+                            role='employee',
+                            status='active',
+                            password=make_password(temp_password),
+                            is_active=True
+                        )
+                        bio.user = new_user
+                        bio.save()
+
+                       
+                        # Send welcome email
+                        subject = 'Welcome to STACKLY - Your Account Details'
+                        message = f"""
                         Dear {bio.first_name} {bio.last_name},
 
-                        Congratulations! Your bio data submission has been approved.
+                        Your bio data has been approved!
+
+                        Login Details:
+                        - Email: {email}
+                        - Temporary Password: {temp_password}
+
+                        Please login at: {request.build_absolute_uri(reverse('employee_app:login'))}
+                        Change your password immediately after login.
 
                         Employee Details:
                         - Employee ID: {bio.employee_id}
                         - Official Email: {bio.official_email}
                         - Designation: {bio.designation}
                         - Department: {bio.department}
-                        - Date of Joining: {bio.doj.strftime('%d %B %Y') if bio.doj else 'TBD'}
-                        - Work Mode: {bio.work_mode or 'Not specified'}
-
-                        Please check your official email for further instructions.
+                        - Date of Joining: {bio.doj}
 
                         Best regards,
                         HR Team - STACKLY
                         """
-                send_mail(subject, message.strip(), settings.DEFAULT_FROM_EMAIL, [bio.personal_email])
+                        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [bio.personal_email])
 
-                # === NOTIFICATION: BioData approved → notify admin & super_admin ===
-                for notifier in CustomUser.objects.filter(role__in=['admin', 'super_admin'], is_active=True):
-                    link = reverse('employee_app:view_biodata', args=[bio.pk])
-                    create_notification(
-                        recipient=notifier,
-                        ntype='biodata_approved',
-                        title='BioData Approved',
-                        message=f"{bio.first_name} {bio.last_name}'s request was approved by {request.user.get_full_name() or request.user.email}.",
-                        link=request.build_absolute_uri(link)
-                    )
+                        # Notify admins
+                        for notifier in CustomUser.objects.filter(role__in=['admin', 'super_admin']):
+                            create_notification(
+                                notifier,
+                                'employee_account_created',
+                                'Employee Account Created',
+                                f"Account created for {bio.first_name} {bio.last_name} ({email}) on approval.",
+                                reverse('employee_app:edit_user', args=[new_user.id])
+                            )
 
+                messages.success(request, 'Employee approved successfully!' + (' Account created.' if create_account else ''))
             elif action == 'reject':
                 bio.status = 'rejected'
                 messages.success(request, 'Application rejected successfully.')
-                send_mail(
-                    'Application Rejected',
-                    f'Reason: {bio.reject_reason}',
-                    settings.DEFAULT_FROM_EMAIL,
-                    [bio.personal_email]
-                )
-
-                # === NOTIFICATION: BioData rejected → notify admin & super_admin ===
-                for notifier in CustomUser.objects.filter(role__in=['admin', 'super_admin'], is_active=True):
-                    link = reverse('employee_app:review_biodata_detail', args=[bio.pk])
-                    create_notification(
-                        recipient=notifier,
-                        ntype='biodata_rejected',
-                        title='BioData Rejected',
-                        message=f"{bio.first_name} {bio.last_name}'s request was rejected by {request.user.get_full_name() or request.user.email}. Reason: {bio.reject_reason}",
-                        link=request.build_absolute_uri(link)
-                    )
 
             bio.save()
             return redirect('employee_app:pending_requests')
@@ -512,7 +538,6 @@ def review_biodata_detail(request, pk):
         form = ReviewForm(instance=bio)
 
     return render(request, 'employee_app/review_biodata_detail.html', {'bio': bio, 'form': form})
-
 
 from django.db.models import Q
 
@@ -547,20 +572,60 @@ def biodata_list(request):
     return render(request, 'employee_app/biodata.html', context)
 
 @login_required
+def delete_pending_request(request, pk):
+    if not has_permission(request.user, 'biodata', 'delete'):
+        return HttpResponse('Access Denied', status=403)
+
+    request_obj = get_object_or_404(BioDataRequest, pk=pk, status='pending')
+
+    if request.method == 'POST':
+        name = f"{request_obj.first_name} {request_obj.last_name}"
+        request_obj.delete()
+        messages.success(request, f"Pending request for {name} deleted.")
+        return redirect('employee_app:pending_requests')
+
+    return render(request, 'employee_app/delete_confirm.html', {
+        'object': request_obj,
+        'title': 'Delete Pending Request',
+        'back_url': reverse('employee_app:pending_requests')
+    })
+
+
+@login_required
+def delete_approved_employee(request, pk):
+    if not has_permission(request.user, 'biodata', 'delete'):
+        return HttpResponse('Access Denied', status=403)
+
+    employee = get_object_or_404(BioDataRequest, pk=pk, status='approved')
+
+    if request.method == 'POST':
+        name = f"{employee.first_name} {employee.last_name}"
+        employee.delete()
+        messages.success(request, f"Approved employee {name} deleted.")
+        return redirect('employee_app:biodata_list')
+
+    return render(request, 'employee_app/delete_confirm.html', {
+        'object': employee,
+        'title': 'Delete Approved Employee',
+        'back_url': reverse('employee_app:biodata_list')
+    })
+
+@login_required
 def view_biodata(request, pk):
     bio = get_object_or_404(BioDataRequest, pk=pk, status='approved')
     return render(request, 'employee_app/view_biodata.html', {'bio': bio})
 
+from .forms import BioDataEditForm
 @login_required
 def edit_biodata(request, pk):
     bio = get_object_or_404(BioDataRequest, pk=pk, status='approved')
 
     if request.method == 'POST':
-        form = EditForm(request.POST, request.FILES, instance=bio)
+        form = BioDataEditForm(request.POST, request.FILES, instance=bio)
         if form.is_valid():
             form.save()
-            
-            # === NOTIFICATION: BioData edited → notify admin & super_admin ===
+
+            # Notification
             for notifier in CustomUser.objects.filter(role__in=['admin', 'super_admin'], is_active=True):
                 link = reverse('employee_app:view_biodata', args=[bio.pk])
                 create_notification(
@@ -572,9 +637,9 @@ def edit_biodata(request, pk):
                 )
 
             messages.success(request, 'Employee bio data updated successfully!')
-            return redirect('view_biodata', pk=bio.pk)
+            return redirect('employee_app:view_biodata', pk=bio.pk)
     else:
-        form = EditForm(instance=bio)
+        form = BioDataEditForm(instance=bio)
 
     return render(request, 'employee_app/edit_biodata.html', {'form': form, 'bio': bio})
 
@@ -717,3 +782,52 @@ def mark_all_read(request):
 def notifications_all(request):
     notifs = request.user.notifications.all()
     return render(request, 'employee_app/notifications_all.html', {'notifications': notifs})
+
+from .models import CustomUser, BioDataRequest, Notification
+from .forms import BioDataForm, ReviewForm,  EmployeeProfileForm
+from .utils import create_notification, has_permission
+
+@login_required
+def employee_dashboard(request):
+    if request.user.role != 'employee':
+        return redirect('employee_app:dashboard')  # redirect admins to main dashboard
+
+    bio = request.user.bio_data_request if hasattr(request.user, 'bio_data_request') else None
+    return render(request, 'employee_app/employee_dashboard.html', {'bio': bio})
+
+
+# NEW: My Profile (view)
+@login_required
+def my_profile(request):
+    if request.user.role != 'employee':
+        return redirect('employee_app:dashboard')
+
+    bio = request.user.bio_data_request
+    if not bio:
+        messages.warning(request, "No biodata linked to your account yet.")
+        return redirect('employee_app:employee_dashboard')
+
+    return render(request, 'employee_app/my_profile.html', {'bio': bio})
+
+
+# NEW: Edit My Profile (limited fields)
+@login_required
+def edit_my_profile(request):
+    if request.user.role != 'employee':
+        return redirect('employee_app:dashboard')
+
+    bio = request.user.bio_data_request
+    if not bio:
+        messages.error(request, "No biodata found.")
+        return redirect('employee_app:my_profile')
+
+    if request.method == 'POST':
+        form = EmployeeProfileForm(request.POST, instance=bio)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your profile updated successfully!')
+            return redirect('employee_app:my_profile')
+    else:
+        form = EmployeeProfileForm(instance=bio)
+
+    return render(request, 'employee_app/edit_my_profile.html', {'form': form, 'bio': bio})

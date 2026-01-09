@@ -122,26 +122,113 @@ class BioDataForm(forms.ModelForm):
             raise forms.ValidationError("This email has already been used for a submission.")
         return email
 
-# For HR Review (Approve/Reject)
+
+from django.core.exceptions import ValidationError
+from .models import BioDataRequest, CustomUser
+from django import forms
+from django.core.exceptions import ValidationError
+from .models import BioDataRequest, CustomUser
+
 class ReviewForm(forms.ModelForm):
+    create_account = forms.BooleanField(
+        required=False,
+        initial=True,
+        label="Create Employee Account?",
+        help_text="If checked, a login account will be created."
+    )
+
     class Meta:
         model = BioDataRequest
-        fields = ['employee_id', 'official_email', 'designation', 'department', 'doj', 'work_mode', 'reject_reason']
+        fields = ['employee_id', 'official_email', 'designation', 'department', 'doj', 'work_mode', 'reject_reason', 'create_account']
         widgets = {
             'reject_reason': forms.Textarea(attrs={'rows': 4}),
             'doj': forms.DateInput(attrs={'type': 'date'}),
+            'employee_id': forms.TextInput(attrs={'placeholder': 'e.g., EMP-2025-156'}),
+            'official_email': forms.EmailInput(attrs={'placeholder': 'employee@stackly.com'}),
+            'designation': forms.Select(choices=[('', 'Select'),('Junior Developer', 'Junior Developer'),('Frontend Developer', 'Frontend Developer'),('Backend Developer', 'Backend Developer'),('Full Stack Developer', 'Full Stack Developer'),('QA Engineer', 'QA Engineer'),]),
+
+           'department': forms.Select(choices=CustomUser.DEPARTMENT_CHOICES),
+
+            'work_mode': forms.Select(choices=[('', 'Select'), ('Remote', 'Remote'), ('Onsite', 'Onsite'), ('Hybrid', 'Hybrid')]),
         }
 
+    def clean_official_email(self):
+        email = self.cleaned_data.get('official_email')
+        if email:
+            # Prevent duplicate in CustomUser
+            if CustomUser.objects.filter(email=email).exists():
+                raise ValidationError("This official email is already used by another employee.")
+            # Prevent duplicate in other BioDataRequest
+            current_id = self.instance.pk if self.instance else None
+            if BioDataRequest.objects.exclude(pk=current_id).filter(official_email=email).exists():
+                raise ValidationError("This official email is already assigned to another biodata.")
+        return email
 
-# For Editing Approved Employee
-class EditForm(forms.ModelForm):
+    def clean_employee_id(self):
+        emp_id = self.cleaned_data.get('employee_id')
+        if emp_id:
+            current_id = self.instance.pk if self.instance else None
+            if BioDataRequest.objects.exclude(pk=current_id).filter(employee_id=emp_id).exists():
+                raise ValidationError("This Employee ID is already in use.")
+        return emp_id
+
+class BioDataEditForm(forms.ModelForm):
     class Meta:
         model = BioDataRequest
-        fields = '__all__'
-        exclude = ['status', 'reject_reason', 'approved_by', 'created_at', 'updated_at']
+        fields = [
+            'first_name', 'middle_name', 'last_name', 'dob', 'gender', 'marital_status',
+            'contact_number', 'emergency_contact', 'personal_email',
+            'address_line1', 'address_line2', 'city', 'state', 'postal_code', 'country',
+            'aadhar_no', 'pan_no', 'bank_name', 'bank_branch', 'account_number', 'account_name', 'ifsc_code',
+            'experience_type', 'post_applied_for', 'blood_group',
+            'ssc_school', 'ssc_year', 'ssc_grade', 'ssc_marksheet',  # SSC
+            'sslc_school', 'sslc_year', 'sslc_grade', 'sslc_marksheet',  # SSLC
+            'ug_degree', 'ug_institution', 'ug_year', 'ug_documents',  # UG
+            'pg_degree', 'pg_institution', 'pg_year', 'pg_documents',  # PG
+            'cert_course', 'cert_institution', 'cert_year', 'cert_document',  # Certification
+            'technical_skills', 'soft_skills', 'reference_name', 'reference_contact',
+            'employee_id', 'official_email', 'designation', 'department', 'doj', 'work_mode',
+            'photo', 'resume', 'aadhar_card', 'pan_card',
+        ]
+        exclude = ['status', 'reject_reason', 'approved_by', 'created_at', 'updated_at', 'user', 'work_experience']  # exclude dynamic JSON
         widgets = {
             'dob': forms.DateInput(attrs={'type': 'date'}),
             'doj': forms.DateInput(attrs={'type': 'date'}),
+            'department': forms.Select(choices=CustomUser.DEPARTMENT_CHOICES),
+            'designation': forms.Select(choices=[('', 'Select'), ('Junior Developer', 'Junior Developer'), ('Frontend Developer', 'Frontend Developer'), ('Backend Developer', 'Backend Developer'), ('Full Stack Developer', 'Full Stack Developer'), ('QA Engineer', 'QA Engineer')]),
             'technical_skills': forms.Textarea(attrs={'rows': 3}),
             'soft_skills': forms.Textarea(attrs={'rows': 3}),
+        }
+
+# NEW: Dedicated form for editing users (replaces manual POST handling)
+class UserEditForm(forms.ModelForm):
+    class Meta:
+        model = CustomUser
+        fields = ['full_name', 'email', 'phone', 'department', 'role', 'status']
+        widgets = {
+            'email': forms.EmailInput(attrs={'readonly': 'readonly'}),  # readonly in edit
+            'department': forms.Select(choices=CustomUser.DEPARTMENT_CHOICES),
+            'role': forms.Select(choices=CustomUser.ROLE_CHOICES),
+            'status': forms.Select(choices=CustomUser.STATUS_CHOICES),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            self.fields['email'].widget.attrs['readonly'] = True
+
+
+
+# For employee self-edit (limited fields)
+class EmployeeProfileForm(forms.ModelForm):
+    class Meta:
+        model = BioDataRequest
+        fields = ['contact_number', 'emergency_contact', 'address_line1', 'address_line2', 'city', 'state', 'postal_code', 'country']
+        widgets = {
+            'address_line1': forms.TextInput(attrs={'class': 'form-control'}),
+            'address_line2': forms.TextInput(attrs={'class': 'form-control'}),
+            'city': forms.TextInput(attrs={'class': 'form-control'}),
+            'state': forms.TextInput(attrs={'class': 'form-control'}),
+            'postal_code': forms.TextInput(attrs={'class': 'form-control'}),
+            'country': forms.Select(attrs={'class': 'form-control'}),
         }

@@ -1,0 +1,32 @@
+{% extends 'employee_app/base.html' %}
+
+{% block page_title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="content-area">
+  <div class="content-card">
+    <h2>My Profile</h2>
+
+    {% if bio %}
+      <div class="profile-details">
+        <h3>Personal Information</h3>
+        <p><strong>Name:</strong> {{ bio.first_name }} {{ bio.middle_name|default:'' }} {{ bio.last_name }}</p>
+        <p><strong>Email:</strong> {{ bio.personal_email }}</p>
+        <p><strong>Phone:</strong> {{ bio.contact_number }}</p>
+        <p><strong>Address:</strong> {{ bio.address_line1 }} {{ bio.address_line2 }}, {{ bio.city }}, {{ bio.state }} {{ bio.postal_code }}</p>
+
+        <h3>Professional Information</h3>
+        <p><strong>Employee ID:</strong> {{ bio.employee_id|default:"Not assigned" }}</p>
+        <p><strong>Official Email:</strong> {{ bio.official_email|default:"-" }}</p>
+        <p><strong>Designation:</strong> {{ bio.designation|default:"-" }}</p>
+        <p><strong>Department:</strong> {{ bio.department|default:"-" }}</p>
+        <p><strong>Date of Joining:</strong> {{ bio.doj|date:"d M Y"|default:"-" }}</p>
+
+        <a href="{% url 'employee_app:edit_my_profile' %}" class="btn btn-primary">Edit Profile</a>
+      </div>
+    {% else %}
+      <p>No biodata linked yet. Contact HR.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

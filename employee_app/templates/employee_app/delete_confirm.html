@@ -1,0 +1,21 @@
+{% extends 'employee_app/base.html' %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="content-area">
+  <div class="content-card" style="max-width:600px;">
+    <h2>{{ title }}</h2>
+    <p>Are you sure you want to delete:</p>
+    <h3>{{ object.first_name }} {{ object.last_name }}</h3>
+    <p>Email: {{ object.personal_email }}</p>
+    <p>Status: {{ object.get_status_display }}</p>
+
+    <form method="POST">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger">Yes, Delete</button>
+      <a href="{{ back_url }}" class="btn btn-secondary">Cancel</a>
+    </form>
+  </div>
+</div>
+{% endblock %}
