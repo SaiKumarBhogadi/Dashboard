@@ -1,0 +1,207 @@
+{% extends 'employee_app/base.html' %}
+
+{% block page_title %}Batch Details: {{ batch.name }}{% endblock %}
+
+{% block content %}
+<div class="content-area">
+  <div class="content-card">
+
+    <!-- Header (same style as training dashboard) -->
+    <div class="card-header">
+      <h2>Batch Details: {{ batch.name }}</h2>
+      <p class="card-subtitle">
+        Code: {{ batch.batch_code|default:"Auto-generated" }} • 
+        Status: <span class="status-badge {{ batch.status }}">{{ batch.get_status_display }}</span>
+      </p>
+      <div class="header-action">
+        <a href="{% url 'employee_app:edit_batch' batch.pk %}" class="btn btn-primary">Edit Batch</a>
+      </div>
+    </div>
+
+    <!-- Quick Stats Grid (same as dashboard) -->
+    <div class="training-stats-grid">
+      <div class="stat-card">
+        <h3>Start Date</h3>
+        <p class="stat-number">{{ batch.start_date|date:"d M Y" }}</p>
+      </div>
+      <div class="stat-card">
+        <h3>End Date</h3>
+        <p class="stat-number">{{ batch.end_date|date:"d M Y" }}</p>
+      </div>
+      <div class="stat-card">
+        <h3>Duration</h3>
+        <p class="stat-number">{{ duration_days }} days</p>
+      </div>
+      <div class="stat-card">
+        <h3>Progress</h3>
+        <p class="stat-number">{{ batch.progress_percentage }}%</p>
+      </div>
+      <div class="stat-card">
+        <h3>Trainers</h3>
+        <p class="stat-number">{{ trainer_count }}</p>
+      </div>
+      <div class="stat-card">
+        <h3>Employees</h3>
+        <p class="stat-number">{{ employee_count }}</p>
+      </div>
+    </div>
+
+    <!-- Assigned Trainers -->
+    <div class="section-block">
+      <div class="section-header">
+        <h3>Assigned Trainers</h3>
+      </div>
+      {% if batch.trainers.exists %}
+        <div class="table-container">
+          <table class="employees-biodata-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for trainer in batch.trainers.all %}
+                <tr>
+                  <td>{{ trainer.full_name|default:trainer.email }}</td>
+                  <td>{{ trainer.email }}</td>
+                  <td>{{ trainer.get_role_display }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="text-center py-4 text-muted">
+          No trainers assigned to this batch.
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Enrolled Employees -->
+    <div class="section-block">
+      <div class="section-header">
+        <h3>Enrolled Employees</h3>
+      </div>
+      {% if batch.employees.exists %}
+        <div class="table-container">
+          <table class="employees-biodata-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Employee ID</th>
+                <th>Department</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for emp in batch.employees.all %}
+                <tr>
+                  <td>{{ emp.full_name|default:emp.email }}</td>
+                  <td>{{ emp.email }}</td>
+                  <td>
+                    {% if emp.bio_data_request %}
+                      {{ emp.bio_data_request.employee_id|default:"N/A" }}
+                    {% else %}
+                      N/A
+                    {% endif %}
+                  </td>
+                  <td>{{ emp.department|default:"Not Specified" }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="text-center py-4 text-muted">
+          No employees enrolled in this batch yet.
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Scheduled Sessions -->
+    <div class="section-block">
+      <div class="section-header">
+        <h3>Scheduled Sessions</h3>
+      </div>
+      {% if batch.sessions.exists %}
+        <div class="table-container">
+          <table class="employees-biodata-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Date & Time</th>
+                <th>Duration</th>
+                <th>Trainer</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for session in sessions %}
+                <tr>
+                  <td><a href="{% url 'employee_app:session_detail' session.pk %}">{{ session.title }}</a></td>
+                  <td>{{ session.date_time|date:"d M Y, H:i" }}</td>
+                  <td>{{ session.duration_hours }}h</td>
+                  <td>{{ session.trainer.full_name|default:session.trainer.email|default:"—" }}</td>
+                  <td><span class="status-badge {{ session.status }}">{{ session.get_status_display }}</span></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="text-center py-4 text-muted">
+          No sessions scheduled yet.
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Assignments -->
+    <div class="section-block">
+      <div class="section-header">
+        <h3>Assignments</h3>
+      </div>
+      {% if batch.assignments.exists %}
+        <div class="table-container">
+          <table class="employees-biodata-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Due Date</th>
+                <th>Max Score</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for assignment in assignments %}
+                <tr>
+                  <td><a href="{% url 'employee_app:assignment_detail' assignment.pk %}">{{ assignment.title }}</a></td>
+                  <td>{{ assignment.due_date|date:"d M Y" }}</td>
+                  <td>{{ assignment.max_score }}</td>
+                  <td><span class="status-badge {{ assignment.status }}">{{ assignment.get_status_display }}</span></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="text-center py-4 text-muted">
+          No assignments created yet.
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Actions -->
+    <div class="form-actions text-center mt-5">
+      <a href="{% url 'employee_app:edit_batch' batch.pk %}" class="btn btn-primary btn-lg px-5 py-3 me-3">
+        <i class="fas fa-edit me-2"></i> Edit Batch
+      </a>
+      <a href="{% url 'employee_app:training_dashboard' %}" class="btn btn-secondary btn-lg px-5 py-3">
+        <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

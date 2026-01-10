@@ -3,32 +3,6 @@ from django.views.generic import TemplateView
 
 
 
-def batch_form(request):
-    return render(request, 'employee_app/batch_form.html')
-
-def session_form(request):
-    return render(request, 'employee_app/session_form.html')
-
-def assignment_form(request):
-    return render(request, 'employee_app/assignment_form.html')
-
-def batch_details(request):
-    return render(request, 'employee_app/batch_details.html')
-
-def session_details(request):
-    return render(request, 'employee_app/session_details.html')
-
-def assignment_details(request):
-    return render(request, 'employee_app/assignment_details.html')
-
-def edit_batch(request):
-    return render(request, 'employee_app/edit_batch.html')
-
-def edit_session(request):
-    return render(request, 'employee_app/edit_session.html')
-
-def edit_assignment(request):
-    return render(request, 'employee_app/edit_assignment.html')
 
 
 from django.shortcuts import render, redirect, get_object_or_404
@@ -255,17 +229,17 @@ def dashboard(request):
 
 
 
-@login_required
-def training(request):
-    if not has_permission(request.user, 'training', 'view'):
-        return HttpResponse('Access Denied', status=403)
-    return render(request, 'employee_app/training.html')
+# @login_required
+# def training(request):
+#     if not has_permission(request.user, 'training', 'view'):
+#         return HttpResponse('Access Denied', status=403)
+#     return render(request, 'employee_app/training.html')
 
-@login_required
-def add_trainee(request):
-    if not has_permission(request.user, 'training', 'create'):
-        return HttpResponse('Access Denied', status=403)
-    return render(request, 'employee_app/add_trainee.html')
+# @login_required
+# def add_trainee(request):
+#     if not has_permission(request.user, 'training', 'create'):
+#         return HttpResponse('Access Denied', status=403)
+#     return render(request, 'employee_app/add_trainee.html')
 
 
 
@@ -831,3 +805,450 @@ def edit_my_profile(request):
         form = EmployeeProfileForm(instance=bio)
 
     return render(request, 'employee_app/edit_my_profile.html', {'form': form, 'bio': bio})
+
+
+
+
+
+
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.db.models import Q, Count
+from django.utils import timezone
+from django.http import HttpResponseForbidden
+from .models import Batch, Session, Assignment, Submission
+from .forms import (
+  
+    SessionForm, SessionEditForm,
+    AssignmentForm, AssignmentEditForm,
+    SubmissionForm
+)
+
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Q
+
+@login_required
+def training_dashboard(request):
+    if not has_permission(request.user, 'training', 'view') or not has_permission(request.user, 'training', 'manage'):
+        return HttpResponseForbidden("You don't have permission to access the training management dashboard.")
+
+    # Search query from GET param (?q=...)
+    search_query = request.GET.get('q', '').strip()
+
+    # ───── Batches ─────
+    batches_qs = Batch.objects.all().order_by('-start_date')
+    if search_query:
+        batches_qs = batches_qs.filter(
+            Q(name__icontains=search_query) |
+            Q(batch_code__icontains=search_query)
+        )
+    batches_paginator = Paginator(batches_qs, 10)
+    batches_page = request.GET.get('batches_page', 1)
+    try:
+        batches = batches_paginator.page(batches_page)
+    except PageNotAnInteger:
+        batches = batches_paginator.page(1)
+    except EmptyPage:
+        batches = batches_paginator.page(batches_paginator.num_pages)
+
+    # ───── Sessions ───── (newest first)
+    sessions_qs = Session.objects.all().order_by('-date_time')
+    if search_query:
+        sessions_qs = sessions_qs.filter(
+            Q(title__icontains=search_query) |
+            Q(batch__name__icontains=search_query)
+        )
+    sessions_paginator = Paginator(sessions_qs, 10)
+    sessions_page = request.GET.get('sessions_page', 1)
+    try:
+        sessions = sessions_paginator.page(sessions_page)
+    except PageNotAnInteger:
+        sessions = sessions_paginator.page(1)
+    except EmptyPage:
+        sessions = sessions_paginator.page(sessions_paginator.num_pages)
+
+    # ───── Assignments ───── (newest due date first)
+    assignments_qs = Assignment.objects.all().order_by('-due_date')
+    if search_query:
+        assignments_qs = assignments_qs.filter(
+            Q(title__icontains=search_query) |
+            Q(batch__name__icontains=search_query)
+        )
+    assignments_paginator = Paginator(assignments_qs, 10)
+    assignments_page = request.GET.get('assignments_page', 1)
+    try:
+        assignments = assignments_paginator.page(assignments_page)
+    except PageNotAnInteger:
+        assignments = assignments_paginator.page(1)
+    except EmptyPage:
+        assignments = assignments_paginator.page(assignments_paginator.num_pages)
+
+    context = {
+        'batches': batches,
+        'sessions': sessions,
+        'assignments': assignments,
+        'is_management_view': True,
+        'search_query': search_query,  # to show in search box
+        # Quick stats (unchanged)
+        'active_batches_count': Batch.objects.filter(status='ongoing').count(),
+        'total_sessions': Session.objects.count(),
+        'pending_assignments': Assignment.objects.filter(status='pending').count(),
+        'enrolled_employees': CustomUser.objects.filter(role='employee', enrolled_batches__isnull=False).distinct().count(),
+    }
+
+    return render(request, 'employee_app/training.html', context)
+
+@login_required
+def my_training(request):
+    """
+    Personal training dashboard for employees.
+    Shows only their enrolled batches, upcoming sessions, pending assignments.
+    """
+    if request.user.role != 'employee':
+        # Redirect admins/trainers to management dashboard
+        return redirect('employee_app:training_admin_dashboard')
+
+    my_batches = Batch.objects.filter(employees=request.user).order_by('-start_date')
+    upcoming_sessions = Session.objects.filter(
+        batch__employees=request.user,
+        date_time__gte=timezone.now()
+    ).order_by('date_time')[:5]
+
+    pending_assignments = Assignment.objects.filter(
+        batch__employees=request.user,
+        status='pending'
+    ).order_by('due_date')
+
+    context = {
+        'my_batches': my_batches,
+        'upcoming_sessions': upcoming_sessions,
+        'pending_assignments': pending_assignments,
+        'is_employee_view': True,
+    }
+
+    return render(request, 'employee_app/my_training.html', context)
+
+
+# ───────────────────────────────────────────────
+# Batch Views
+# ───────────────────────────────────────────────
+# views.py
+from .forms import BatchCreateForm , BatchUpdateForm
+@login_required
+def create_batch(request):
+    if not has_permission(request.user, 'training', 'create'):
+        return HttpResponseForbidden()
+
+    if request.method == 'POST':
+        form = BatchCreateForm(request.POST)
+        if form.is_valid():
+            batch = form.save(commit=False)
+            batch.created_by = request.user
+            batch.save()
+            form.save_m2m()
+            messages.success(request, f'Batch "{batch.name}" created successfully!')
+            return redirect('employee_app:training_dashboard')
+    else:
+        form = BatchCreateForm()
+
+    return render(request, 'employee_app/add_batch.html', {'form': form})
+
+
+@login_required
+def edit_batch(request, pk):
+    if not has_permission(request.user, 'training', 'edit'):
+        return HttpResponseForbidden()
+
+    batch = get_object_or_404(Batch, pk=pk)
+
+    if request.method == 'POST':
+        form = BatchUpdateForm(request.POST, instance=batch)
+        if form.is_valid():
+            form.save()   # ← saves both fields + m2m relations
+            messages.success(request, f'Batch "{batch.name}" updated successfully!')
+            return redirect('employee_app:batch_detail', pk=batch.pk)
+    else:
+        form = BatchUpdateForm(instance=batch)
+
+    return render(request, 'employee_app/edit_batch.html', {
+        'form': form,
+        'batch': batch  # ← useful for showing current count, etc.
+    })
+
+
+@login_required
+def batch_detail(request, pk):
+    batch = get_object_or_404(Batch, pk=pk)
+
+    # Calculate duration in days
+    if batch.start_date and batch.end_date:
+        duration_days = (batch.end_date - batch.start_date).days
+    else:
+        duration_days = 0
+
+    context = {
+        'batch': batch,
+        'sessions': batch.sessions.all().order_by('date_time'),
+        'assignments': batch.assignments.all().order_by('due_date'),
+        'employee_count': batch.employees.count(),
+        'trainer_count': batch.trainers.count(),
+        'duration_days': duration_days,  # ← New context variable
+    }
+
+    return render(request, 'employee_app/batch_detail.html', context)
+
+
+# ───────────────────────────────────────────────
+# Session Views
+# ───────────────────────────────────────────────
+
+@login_required
+def create_session(request, batch_id=None):  # Add optional batch_id parameter
+    if not has_permission(request.user, 'training', 'create'):
+        return HttpResponseForbidden("You don't have permission to create sessions.")
+
+    initial = {}
+    if batch_id:
+        initial['batch'] = batch_id
+
+    if request.method == 'POST':
+        form = SessionForm(request.POST)
+        if form.is_valid():
+            session = form.save(commit=False)
+            session.created_by = request.user
+            session.save()
+            messages.success(request, f'Session "{session.title}" created successfully!')
+            return redirect('employee_app:batch_detail', pk=session.batch.pk)
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = SessionForm(initial=initial)
+
+    return render(request, 'employee_app/add_session.html', {'form': form, 'batch_id': batch_id})
+
+from django.http import JsonResponse
+
+@login_required
+def get_batch_trainers(request):
+    batch_id = request.GET.get('batch_id')
+    if not batch_id:
+        return JsonResponse({'trainers': []})
+
+    try:
+        batch = Batch.objects.get(pk=batch_id)
+        trainers = [
+            {'id': trainer.id, 'name': trainer.full_name or trainer.email}
+            for trainer in batch.trainers.all()
+        ]
+        return JsonResponse({'trainers': trainers})
+    except Batch.DoesNotExist:
+        return JsonResponse({'trainers': []})
+
+
+@login_required
+def edit_session(request, pk):
+    if not has_permission(request.user, 'training', 'edit'):
+        return HttpResponseForbidden("You don't have permission to edit sessions.")
+
+    session = get_object_or_404(Session, pk=pk)
+
+    if request.method == 'POST':
+        form = SessionEditForm(request.POST, instance=session)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Session "{session.title}" updated successfully!')
+            return redirect('employee_app:session_detail', pk=session.pk)
+    else:
+        form = SessionEditForm(instance=session)
+
+    return render(request, 'employee_app/edit_session.html', {
+        'form': form,
+        'session': session
+    })
+
+
+# views.py
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseForbidden
+from .models import Session, Attendance, Batch
+from .forms import SessionForm, SessionEditForm  # if you have them
+
+@login_required
+def session_detail(request, pk):
+    session = get_object_or_404(Session, pk=pk)
+
+    # Check permission to view (trainer/admin or enrolled employee)
+    can_view = (
+        request.user in session.batch.trainers.all() or
+        request.user.role in ['admin', 'super_admin'] or
+        request.user in session.batch.employees.all()
+    )
+    if not can_view:
+        return HttpResponseForbidden("You don't have permission to view this session.")
+
+    # Can mark attendance? (trainers of batch or admin)
+    can_mark_attendance = (
+        request.user in session.batch.trainers.all() or
+        request.user.role in ['admin', 'super_admin']
+    )
+
+    context = {
+        'session': session,
+        'batch': session.batch,
+        'attendance_records': session.attendance_records.all() if session.attendance_taken else None,
+        'can_mark_attendance': can_mark_attendance,
+        'attendance_percentage': session.attendance_percentage if hasattr(session, 'attendance_percentage') else 0,
+    }
+
+    return render(request, 'employee_app/session_detail.html', context)
+
+
+@login_required
+def mark_attendance(request, session_id):
+    session = get_object_or_404(Session, pk=session_id)
+
+    # Permission check
+    if not (request.user in session.batch.trainers.all() or request.user.role in ['admin', 'super_admin']):
+        return HttpResponseForbidden("You don't have permission to mark/update attendance.")
+
+    employees = session.batch.employees.all().order_by('full_name')
+
+    # Load existing attendance if already marked
+    existing_attendance = {}
+    if session.attendance_taken:
+        for record in session.attendance_records.all():
+            existing_attendance[record.employee.id] = {
+                'status': record.status,
+                'notes': record.notes,
+            }
+
+    if request.method == 'POST':
+        # Delete old attendance records (clean slate)
+        session.attendance_records.all().delete()
+
+        # Create new records
+        for emp in employees:
+            status = request.POST.get(f'status_{emp.id}', 'absent')
+            notes = request.POST.get(f'notes_{emp.id}', '').strip()
+
+            Attendance.objects.create(
+                session=session,
+                employee=emp,
+                status=status,
+                notes=notes,
+                marked_by=request.user
+            )
+
+        # Always set flag to True (even if updating)
+        session.attendance_taken = True
+        session.save(update_fields=['attendance_taken'])
+
+        messages.success(request, f"Attendance successfully {'updated' if existing_attendance else 'marked'}!")
+        return redirect('employee_app:session_detail', pk=session.pk)
+
+    context = {
+        'session': session,
+        'employees': employees,
+        'existing_attendance': existing_attendance,
+        'is_update': bool(existing_attendance),
+    }
+
+    return render(request, 'employee_app/mark_attendance.html', context)
+
+# ───────────────────────────────────────────────
+# Assignment Views
+# ───────────────────────────────────────────────
+
+@login_required
+def create_assignment(request):
+    if not has_permission(request.user, 'training', 'create'):
+        return HttpResponseForbidden("You don't have permission to create assignments.")
+
+    if request.method == 'POST':
+        form = AssignmentForm(request.POST)
+        if form.is_valid():
+            assignment = form.save(commit=False)
+            assignment.created_by = request.user
+            assignment.save()
+            messages.success(request, f'Assignment "{assignment.title}" created successfully!')
+            return redirect('employee_app:batch_detail', pk=assignment.batch.pk)
+    else:
+        form = AssignmentForm()
+
+    return render(request, 'employee_app/add_assignment.html', {'form': form})
+
+
+@login_required
+def edit_assignment(request, pk):
+    if not has_permission(request.user, 'training', 'edit'):
+        return HttpResponseForbidden("You don't have permission to edit assignments.")
+
+    assignment = get_object_or_404(Assignment, pk=pk)
+
+    if request.method == 'POST':
+        form = AssignmentEditForm(request.POST, instance=assignment)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Assignment "{assignment.title}" updated successfully!')
+            return redirect('employee_app:assignment_detail', pk=assignment.pk)
+    else:
+        form = AssignmentEditForm(instance=assignment)
+
+    return render(request, 'employee_app/edit_assignment.html', {
+        'form': form,
+        'assignment': assignment
+    })
+
+
+@login_required
+def assignment_detail(request, pk):
+    assignment = get_object_or_404(Assignment, pk=pk)
+
+    context = {
+        'assignment': assignment,
+        'submissions': assignment.submissions.all(),
+        'submission_count': assignment.submissions.count(),
+    }
+
+    return render(request, 'employee_app/assignment_detail.html', context)
+
+
+# ───────────────────────────────────────────────
+# Employee Submission View
+# ───────────────────────────────────────────────
+
+@login_required
+def submit_assignment(request, assignment_id):
+    assignment = get_object_or_404(Assignment, pk=assignment_id)
+
+    if request.user.role != 'employee':
+        return HttpResponseForbidden("Only employees can submit assignments.")
+
+    # Check if already submitted
+    submission, created = Submission.objects.get_or_create(
+        assignment=assignment,
+        employee=request.user,
+        defaults={'submitted_at': timezone.now()}
+    )
+
+    if request.method == 'POST':
+        form = SubmissionForm(request.POST, request.FILES, instance=submission)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Assignment submitted successfully!')
+            return redirect('employee_app:my_training')
+    else:
+        form = SubmissionForm(instance=submission)
+
+    return render(request, 'employee_app/assignment_submit.html', {
+        'form': form,
+        'assignment': assignment,
+        'submission': submission
+    })
+

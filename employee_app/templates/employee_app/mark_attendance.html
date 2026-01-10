@@ -1,0 +1,75 @@
+{% extends 'employee_app/base.html' %}
+{% load custom_filters %}
+
+{% block page_title %}Mark/Update Attendance: {{ session.title }}{% endblock %}
+
+{% block content %}
+<div class="content-area">
+  <div class="content-card">
+    <div class="card-header">
+      <h2>{% if is_update %}Update{% else %}Mark{% endif %} Attendance: {{ session.title }}</h2>
+      <p class="card-subtitle">
+        Batch: {{ session.batch.name }} • 
+        Date: {{ session.date_time|date:"d M Y, H:i" }} • 
+        Total Employees: {{ employees.count }}
+      </p>
+    </div>
+
+    <form method="post" class="p-4">
+      {% csrf_token %}
+
+      <div class="section-block">
+        <div class="section-header">
+          <h3>Attendance for {{ employees.count }} Employees</h3>
+          <p class="text-muted">Update status and notes as needed. Previous values are pre-filled where available.</p>
+        </div>
+
+        <div class="table-container">
+          <table class="employees-biodata-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Notes (optional)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for emp in employees %}
+                <tr>
+                  <td>{{ emp.full_name|default:emp.email }}</td>
+                  <td>{{ emp.email }}</td>
+                  <td>
+                    {% with emp_att=existing_attendance|get_item:emp.id %}
+                      <select name="status_{{ emp.id }}" class="form-control">
+                        <option value="present" {% if emp_att.status == 'present' %}selected{% endif %}>Present</option>
+                        <option value="absent" {% if not emp_att or emp_att.status == 'absent' %}selected{% endif %}>Absent</option>
+                        <option value="late" {% if emp_att.status == 'late' %}selected{% endif %}>Late</option>
+                        <option value="excused" {% if emp_att.status == 'excused' %}selected{% endif %}>Excused</option>
+                      </select>
+                    {% endwith %}
+                  </td>
+                  <td>
+                    {% with emp_att=existing_attendance|get_item:emp.id %}
+                      <input type="text" name="notes_{{ emp.id }}" class="form-control" 
+                             value="{{ emp_att.notes|default:'' }}" 
+                             placeholder="e.g., Late due to traffic">
+                    {% endwith %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="form-actions text-center mt-5">
+        <button type="submit" class="btn btn-success btn-lg px-5 py-3">
+          {% if is_update %}Update Attendance{% else %}Save Attendance{% endif %}
+        </button>
+        <a href="{% url 'employee_app:session_detail' session.pk %}" class="btn btn-outline-secondary btn-lg px-5 py-3 ms-3">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

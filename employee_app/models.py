@@ -287,3 +287,203 @@ def sync_biodata_to_user(sender, instance, **kwargs):
             user.save(update_fields=['department', 'phone'])
         finally:
             _syncing = False
+
+
+
+
+# employee_app/models.py (add these at the end)
+
+from django.db import models
+from django.contrib.auth import get_user_model
+from django.core.validators import MinValueValidator
+from django.utils import timezone
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+
+User = get_user_model()
+
+class Batch(models.Model):
+    name = models.CharField(max_length=200, unique=True)
+    batch_code = models.CharField(max_length=50, unique=True, blank=True)  # e.g. PYFS-2026-A
+    start_date = models.DateField()
+    end_date = models.DateField()
+    description = models.TextField(blank=True)
+    status = models.CharField(
+        max_length=20,
+        choices=[('pending', 'Pending'), ('ongoing', 'Ongoing'), ('completed', 'Completed')],
+        default='pending'
+    )
+    trainers = models.ManyToManyField(
+        User,
+        related_name='trained_batches',
+        limit_choices_to={'role__in': ['trainer', 'admin', 'super_admin']}
+    )
+    employees = models.ManyToManyField(
+        User,
+        related_name='enrolled_batches',
+        limit_choices_to={'role': 'employee'}
+    )
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_batches')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def progress_percentage(self):
+        total = self.sessions.count()
+        if total == 0:
+            return 0
+        completed = self.sessions.filter(status='completed').count()
+        return round((completed / total) * 100, 1)
+
+    def save(self, *args, **kwargs):
+        if not self.batch_code:
+            # Auto-generate code, e.g. first 4 letters of name + year + sequence
+            year = self.start_date.year if self.start_date else timezone.now().year
+            prefix = self.name[:4].upper().replace(' ', '')
+            last_batch = Batch.objects.filter(batch_code__startswith=prefix).order_by('-batch_code').first()
+            seq = 1
+            if last_batch and '-' in last_batch.batch_code:
+                try:
+                    seq = int(last_batch.batch_code.split('-')[-1]) + 1
+                except:
+                    pass
+            self.batch_code = f"{prefix}-{year}-{seq:02d}"
+        super().save(*args, **kwargs)
+
+    class Meta:
+        ordering = ['-start_date']
+
+
+class Session(models.Model):
+    title = models.CharField(max_length=200)
+    batch = models.ForeignKey(Batch, on_delete=models.CASCADE, related_name='sessions')
+    trainer = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='led_sessions')
+    date_time = models.DateTimeField()
+    duration_hours = models.FloatField(default=2.0, validators=[MinValueValidator(0.5)])
+    agenda = models.TextField(blank=True)  # renamed from topic_agenda
+    meeting_link = models.URLField(blank=True)
+    status = models.CharField(
+        max_length=20,
+        choices=[('pending', 'Pending'), ('ongoing', 'Ongoing'), ('completed', 'Completed')],
+        default='pending'
+    )
+    notes = models.TextField(blank=True)
+    attendance_taken = models.BooleanField(default=False)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_sessions')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.title} - {self.batch.name}"
+
+    class Meta:
+        ordering = ['date_time']
+    
+    @property
+    def attendance_percentage(self):
+        total = self.batch.employees.count()
+        if total == 0 or not self.attendance_taken:
+            return 0
+        present = self.attendance_records.filter(status='present').count()
+        return round((present / total) * 100, 1)
+
+
+class Assignment(models.Model):
+    title = models.CharField(max_length=200)
+    batch = models.ForeignKey(Batch, on_delete=models.CASCADE, related_name='assignments')
+    session = models.ForeignKey(Session, on_delete=models.SET_NULL, null=True, blank=True, related_name='assignments')
+    due_date = models.DateField()
+    max_score = models.PositiveIntegerField(default=100)
+    description = models.TextField()
+    rubric = models.TextField(blank=True)
+    submission_format = models.TextField(blank=True)
+    status = models.CharField(
+        max_length=20,
+        choices=[('pending', 'Pending'), ('in_progress', 'In Progress'), ('graded', 'Graded')],
+        default='pending'
+    )
+    notes = models.TextField(blank=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+
+    def __str__(self):
+        return self.title
+
+    @property
+    def total_submissions(self):
+        return self.submissions.count()
+
+    @property
+    def average_score(self):
+        scores = [s.score for s in self.submissions.filter(score__isnull=False)]
+        if not scores:
+            return 0
+        return round(sum(scores) / len(scores), 1)
+
+    class Meta:
+        ordering = ['due_date']
+
+
+class Submission(models.Model):
+    assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE, related_name='submissions')
+    employee = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to={'role': 'employee'})
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    file = models.FileField(upload_to='submissions/', blank=True, null=True)
+    score = models.PositiveIntegerField(null=True, blank=True)
+    feedback = models.TextField(blank=True)
+    graded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='graded_submissions')
+    graded_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ('assignment', 'employee')
+        ordering = ['-submitted_at']
+
+    def __str__(self):
+        return f"{self.employee} - {self.assignment}"
+
+    @property
+    def is_late(self):
+        return self.submitted_at.date() > self.assignment.due_date
+
+
+class Attendance(models.Model):
+    session = models.ForeignKey(Session, on_delete=models.CASCADE, related_name='attendance_records')
+    employee = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to={'role': 'employee'})
+    status = models.CharField(
+        max_length=10,
+        choices=[('present', 'Present'), ('absent', 'Absent'), ('late', 'Late'), ('excused', 'Excused')],
+        default='absent'
+    )
+    notes = models.TextField(blank=True)
+    marked_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='attendance_marked')
+    marked_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('session', 'employee')
+        ordering = ['-marked_at']
+
+    def __str__(self):
+        return f"{self.employee} - {self.session}"
+
+
+class Material(models.Model):
+    # Generic relation (can attach to Session or Assignment)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+
+    file = models.FileField(upload_to='training_materials/')
+    uploaded_by = models.ForeignKey('CustomUser', on_delete=models.SET_NULL, null=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    description = models.CharField(max_length=255, blank=True)
+
+    def __str__(self):
+        return f"Material for {self.content_object}"
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["content_type", "object_id"]),
+        ]

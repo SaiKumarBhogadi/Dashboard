@@ -1,34 +1,88 @@
 {% extends 'employee_app/base.html' %}
 
-{% block page_title %}Edit Training Batch - {{ batch.name }}{% endblock %}
-
+{% block page_title %}Create New Training Batch{% endblock %}
 
 {% block content %}
 
-    <!-- Same styles as add_batch.html -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <style>
-        /* Reuse the same styles from add_batch - copy all CSS from above */
         .batch-form-wrapper { max-width: 1180px; margin: 0 auto; padding: 0 15px; }
         .form-header { margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid #e2e8f0; }
-        .form-section { background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); padding: 2rem; margin-bottom: 2rem; border: 1px solid #e2e8f0; }
-        .section-heading { font-size: 1.32rem; font-weight: 600; color: #1e293b; margin: 0 0 1.7rem; padding-bottom: 0.7rem; border-bottom: 2px solid #6366f1; width: fit-content; }
+        .form-section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e2e8f0;
+        }
+        .section-heading {
+            font-size: 1.32rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0 0 1.7rem;
+            padding-bottom: 0.7rem;
+            border-bottom: 2px solid #6366f1;
+            width: fit-content;
+        }
         .form-group { margin-bottom: 1.6rem; position: relative; }
-        .form-label { font-weight: 500; color: #1e293b; margin-bottom: 0.45rem; display: block; }
+        .form-label {
+            font-weight: 500;
+            color: #1e293b;
+            margin-bottom: 0.45rem;
+            display: block;
+        }
         .required::after { content: " *"; color: #ef4444; font-weight: 600; }
         .help-text { font-size: 0.83rem; color: #64748b; margin-top: 0.4rem; display: block; }
         .form-group.has-value .help-text.auto-hide { display: none; }
-        .form-actions { display: flex; gap: 1.25rem; justify-content: flex-end; padding-top: 1.8rem; margin-top: 2.2rem; border-top: 1px solid #e2e8f0; }
+        .form-actions {
+            display: flex;
+            gap: 1.25rem;
+            justify-content: flex-end;
+            padding-top: 1.8rem;
+            margin-top: 2.2rem;
+            border-top: 1px solid #e2e8f0;
+        }
         .btn-lg-custom { padding: 0.75rem 2.2rem; font-weight: 500; }
-        .info-box { background: #f0f9ff; border-left: 4px solid #3b82f6; padding: 1rem 1.3rem; border-radius: 6px; margin-top: 1.4rem; font-size: 0.91rem; }
+        .info-box {
+            background: #f0f9ff;
+            border-left: 4px solid #3b82f6;
+            padding: 1rem 1.3rem;
+            border-radius: 6px;
+            margin-top: 1.4rem;
+            font-size: 0.91rem;
+        }
 
-        .select2-container--default .select2-selection--multiple { min-height: 50px; border-radius: 6px; border-color: #cbd5e1; }
+        /* Select2 compact & modern */
+        .select2-container--default .select2-selection--multiple {
+            min-height: 50px;
+            border-radius: 6px;
+            border-color: #cbd5e1;
+        }
         .select2-selection__rendered { padding: 6px 10px !important; display: flex; flex-wrap: wrap; gap: 6px; }
-        .select2-selection__choice { background-color: #6366f1 !important; color: white !important; border-radius: 14px !important; padding: 4px 11px !important; font-size: 0.86rem !important; max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
-        .select2-selection__choice__remove { color: white !important; margin-right: 5px; font-weight: bold; }
-        .selection-counter { font-size: 0.84rem; color: #6366f1; margin-left: 8px; font-weight: 500; }
+        .select2-selection__choice {
+            background-color: #6366f1 !important;
+            color: white !important;
+            border-radius: 14px !important;
+            padding: 4px 11px !important;
+            font-size: 0.86rem !important;
+            max-width: 260px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .select2-selection__choice__remove {
+            color: white !important;
+            margin-right: 5px;
+            font-weight: bold;
+        }
+        .selection-counter {
+            font-size: 0.84rem;
+            color: #6366f1;
+            margin-left: 8px;
+            font-weight: 500;
+        }
 
         @media (max-width: 992px) {
             .form-section { padding: 1.6rem; }
@@ -38,12 +92,13 @@
     </style>
 
 
+
 <div class="content-area">
     <div class="batch-form-wrapper">
         <div class="content-card">
             <div class="form-header">
-                <h1 class="mb-2">Edit Batch: {{ batch.name }}</h1>
-                <p class="text-muted">Batch Code: <strong>{{ batch.batch_code }}</strong> • Status: {{ batch.get_status_display }}</p>
+                <h1 class="mb-2">Create New Training Batch</h1>
+                <p class="text-muted">Define batch details, schedule and assign trainers & participants</p>
             </div>
 
             <form method="post" novalidate>
@@ -64,10 +119,10 @@
                         </div>
 
                         <div class="col-lg-4">
-                            <div class="form-group">
+                            <div class="form-group has-value auto-hide">
                                 <label class="form-label" for="{{ form.batch_code.id_for_label }}">Batch Code</label>
                                 {{ form.batch_code }}
-                                <small class="help-text">You can change it manually if needed</small>
+                                <small class="help-text auto-hide">Auto-generated if left empty</small>
                             </div>
                         </div>
                     </div>
@@ -101,63 +156,60 @@
                     <div class="form-group">
                         <label class="form-label" for="{{ form.description.id_for_label }}">Description / Objectives</label>
                         {{ form.description }}
-                        <small class="help-text">Main goals, target audience, key topics...</small>
+                        <small class="help-text">Main goals, target audience, key topics, expected outcomes...</small>
                     </div>
                 </div>
 
                 <!-- TRAINERS & PARTICIPANTS -->
                 <div class="form-section">
-                      <div class="section-heading">Trainers & Participants</div>
+                  <div class="section-heading">Trainers & Participants</div>
 
-                      <div class="form-group">
-                          <label class="form-label required d-flex align-items-center">
-                              Trainers
-                              <span class="selection-counter ms-2" id="trainers-count"></span>
-                          </label>
-                          {{ form.trainers }}
-                          {% if form.trainers.errors %}
-                              <small class="text-danger">{{ form.trainers.errors|join:" • " }}</small>
-                          {% endif %}
-                          <small class="help-text">Search by name or email</small>
-                      </div>
-
-                      <div class="form-group mt-4">
-                          <label class="form-label d-flex align-items-center">
-                              Trainees / Employees
-                              <span class="selection-counter ms-2" id="employees-count"></span>
-                          </label>
-
-                          {% if form.employees.field.queryset.exists %}
-                              {{ form.employees }}
-                              <small class="help-text text-primary">
-                                  <strong>You can add new or remove existing</strong> participants
-                              </small>
-                          {% else %}
-                              <div class="alert alert-warning mt-2 py-2 small d-flex align-items-center">
-                                  <i class="fas fa-exclamation-triangle me-2"></i>
-                                  <span>
-                                      No active employees found in the system.
-                                  </span>
-                              </div>
-                          {% endif %}
-
-                          <div class="info-box mt-3">
-                              <strong>Current status:</strong><br>
-                              {{ batch.employees.count }} trainees • {{ batch.trainers.count }} trainers
-                          </div>
-                      </div>
-
-                      <div class="info-box mt-3 bg-light">
-                          <i class="fas fa-info-circle me-2 text-info"></i>
-                          <strong>Tip:</strong> Select/deselect names to add or remove participants.
-                      </div>
+                  <div class="form-group">
+                      <label class="form-label required d-flex align-items-center">
+                          Trainers
+                          <span class="selection-counter ms-2" id="trainers-count"></span>
+                      </label>
+                      {{ form.trainers }}
+                      {% if form.trainers.errors %}
+                          <small class="text-danger">{{ form.trainers.errors|join:" • " }}</small>
+                      {% endif %}
+                      <small class="help-text">Search by name or email</small>
                   </div>
+
+                  <div class="form-group mt-4">
+                      <label class="form-label d-flex align-items-center">
+                          Trainees / Employees
+                          <span class="selection-counter ms-2" id="employees-count"></span>
+                      </label>
+
+                      {% if form.employees.field.queryset.exists %}
+                          {{ form.employees }}
+                          <small class="help-text text-muted">
+                              Only <strong>currently unassigned</strong> employees are shown
+                          </small>
+                      {% else %}
+                          <div class="alert alert-info mt-2 py-2 small d-flex align-items-center">
+                              <i class="fas fa-info-circle me-2"></i>
+                              <span>
+                                  No unassigned employees available right now.<br>
+                                  <small>All active employees are already in some batch.</small>
+                              </span>
+                          </div>
+                      {% endif %}
+                  </div>
+
+                  <div class="info-box mt-3">
+                      <i class="fas fa-lightbulb me-2 text-warning"></i>
+                      <strong>Note:</strong> You can add trainers and trainees now.<br>
+                      You can always modify them later from the batch detail page.
+                  </div>
+              </div>
 
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary btn-lg-custom">
-                        <i class="fas fa-save me-2"></i> Save Changes
+                        <i class="fas fa-plus me-2"></i> Create Batch
                     </button>
-                    <a href="{% url 'employee_app:batch_detail' batch.pk %}" class="btn btn-outline-secondary btn-lg-custom">
+                    <a href="{% url 'employee_app:training_dashboard' %}" class="btn btn-outline-secondary btn-lg-custom">
                         Cancel
                     </a>
                 </div>
@@ -199,7 +251,7 @@ $(document).ready(function() {
         .on('change', updateCounters)
         .trigger('change');
 
-    // Clean phantom values
+    // Clean phantom empty values
     $('form').on('submit', function() {
         $('.select2-selection__choice').each(function() {
             const txt = $(this).text().trim();
@@ -208,5 +260,4 @@ $(document).ready(function() {
     });
 });
 </script>
-
 {% endblock %}

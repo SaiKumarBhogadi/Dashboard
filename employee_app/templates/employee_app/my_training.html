@@ -1,0 +1,163 @@
+{% extends 'employee_app/base.html' %}
+
+{% block page_title %}My Training{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-gradient-success text-white">
+          <h2 class="mb-0">My Training Dashboard</h2>
+          <p class="mb-0">Track your enrolled batches, upcoming sessions & pending assignments</p>
+        </div>
+
+        <div class="card-body">
+          <!-- My Enrolled Batches -->
+          <div class="mb-5">
+            <h4 class="mb-3">My Enrolled Batches</h4>
+            {% if my_batches %}
+              <div class="table-responsive">
+                <table class="table table-hover table-bordered align-middle">
+                  <thead class="table-success">
+                    <tr>
+                      <th>Batch Name</th>
+                      <th>Start Date</th>
+                      <th>End Date</th>
+                      <th>Trainers</th>
+                      <th>Progress</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for batch in my_batches %}
+                      <tr>
+                        <td><a href="{% url 'employee_app:batch_detail' batch.pk %}">{{ batch.name }}</a></td>
+                        <td>{{ batch.start_date|date:"d M Y" }}</td>
+                        <td>{{ batch.end_date|date:"d M Y" }}</td>
+                        <td>{{ batch.trainers.all|join:", " }}</td>
+                        <td>
+                          <div class="progress" style="height: 20px;">
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                 style="width: {{ batch.progress_percentage }}%;" 
+                                 aria-valuenow="{{ batch.progress_percentage }}" aria-valuemin="0" aria-valuemax="100">
+                              {{ batch.progress_percentage }}%
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <span class="badge bg-{% if batch.status == 'ongoing' %}success{% elif batch.status == 'completed' %}info{% else %}secondary{% endif %}">
+                            {{ batch.get_status_display }}
+                          </span>
+                        </td>
+                        <td>
+                          <a href="{% url 'employee_app:batch_detail' batch.pk %}" class="btn btn-sm btn-outline-success">View Details</a>
+                        </td>
+                      </tr>
+                    {% empty %}
+                      <tr><td colspan="7" class="text-center py-4">You are not enrolled in any batches yet.</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <div class="alert alert-info text-center">
+                You are not enrolled in any training batches yet.
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Upcoming Sessions -->
+          <div class="mb-5">
+            <h4 class="mb-3">Upcoming Sessions</h4>
+            {% if upcoming_sessions %}
+              <div class="table-responsive">
+                <table class="table table-hover table-bordered align-middle">
+                  <thead class="table-primary">
+                    <tr>
+                      <th>Date & Time</th>
+                      <th>Session Title</th>
+                      <th>Batch</th>
+                      <th>Duration</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for session in upcoming_sessions %}
+                      <tr>
+                        <td>{{ session.date_time|date:"d M Y, H:i" }}</td>
+                        <td>{{ session.title }}</td>
+                        <td>{{ session.batch.name }}</td>
+                        <td>{{ session.duration_hours }} hours</td>
+                        <td>
+                          <span class="badge bg-{% if session.status == 'ongoing' %}success{% elif session.status == 'completed' %}info{% else %}secondary{% endif %}">
+                            {{ session.get_status_display }}
+                          </span>
+                        </td>
+                      </tr>
+                    {% empty %}
+                      <tr><td colspan="5" class="text-center py-4">No upcoming sessions scheduled.</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <div class="alert alert-info text-center">
+                No upcoming sessions at this time.
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Pending Assignments -->
+          <div>
+            <h4 class="mb-3">Pending Assignments</h4>
+            {% if pending_assignments %}
+              <div class="table-responsive">
+                <table class="table table-hover table-bordered align-middle">
+                  <thead class="table-warning">
+                    <tr>
+                      <th>Title</th>
+                      <th>Due Date</th>
+                      <th>Batch / Session</th>
+                      <th>Max Score</th>
+                      <th>Status</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for assignment in pending_assignments %}
+                      <tr>
+                        <td>{{ assignment.title }}</td>
+                        <td>{{ assignment.due_date|date:"d M Y" }}</td>
+                        <td>{{ assignment.batch.name }}{% if assignment.session %} / {{ assignment.session.title }}{% endif %}</td>
+                        <td>{{ assignment.max_score }}</td>
+                        <td>
+                          <span class="badge bg-{% if assignment.status == 'pending' %}warning{% else %}secondary{% endif %}">
+                            {{ assignment.get_status_display }}
+                          </span>
+                        </td>
+                        <td>
+                          <a href="{% url 'employee_app:submit_assignment' assignment.pk %}" class="btn btn-sm btn-primary">
+                            Submit Now
+                          </a>
+                        </td>
+                      </tr>
+                    {% empty %}
+                      <tr><td colspan="6" class="text-center py-4">No pending assignments.</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <div class="alert alert-success text-center">
+                All assignments completed or none assigned yet. Great job!
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -232,3 +232,217 @@ class EmployeeProfileForm(forms.ModelForm):
             'postal_code': forms.TextInput(attrs={'class': 'form-control'}),
             'country': forms.Select(attrs={'class': 'form-control'}),
         }
+
+
+
+# employee_app/forms.py
+
+from django import forms
+from .models import Batch, Session, Assignment, Submission
+# forms.py
+
+from django import forms
+from .models import Batch, CustomUser
+
+
+class BatchCreateForm(forms.ModelForm):
+    """
+    Form for CREATING new batch - only show currently unassigned employees
+    """
+    class Meta:
+        model = Batch
+        fields = ['name', 'start_date', 'end_date', 'description', 'status', 'trainers', 'employees']
+        widgets = {
+            'start_date': forms.DateInput(attrs={'type': 'date'}),
+            'end_date': forms.DateInput(attrs={'type': 'date'}),
+            'description': forms.Textarea(attrs={'rows': 4}),
+            'trainers': forms.SelectMultiple(attrs={'class': 'form-control select2-multi'}),
+            'employees': forms.SelectMultiple(attrs={'class': 'form-control select2-multi'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Trainers → ONLY people with role='trainer'
+        self.fields['trainers'].queryset = CustomUser.objects.filter(
+            role='trainer',                    # ← Fixed: only trainers
+            is_active=True
+        ).order_by('full_name')
+
+        # Employees → only currently unassigned
+        unassigned = CustomUser.objects.filter(
+            role='employee',
+            is_active=True,
+            enrolled_batches__isnull=True
+        ).select_related('bio_data_request').order_by('full_name')
+
+        choices = [
+            (emp.id, f"{emp.full_name} ({getattr(emp.bio_data_request, 'employee_id', 'N/A')} - {emp.email})")
+            for emp in unassigned
+        ]
+
+        self.fields['employees'].choices = choices
+        self.fields['employees'].queryset = unassigned
+
+
+class BatchUpdateForm(BatchCreateForm):
+    """
+    Form for UPDATING existing batch - show ALL active employees
+    so that already assigned ones can be removed
+    """
+    class Meta(BatchCreateForm.Meta):
+        exclude = ['created_by']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Trainers → same restriction as create (only 'trainer')
+        self.fields['trainers'].queryset = CustomUser.objects.filter(
+            role='trainer',
+            is_active=True
+        ).order_by('full_name')
+
+        # Employees → ALL active (can add or remove)
+        all_employees = CustomUser.objects.filter(
+            role='employee',
+            is_active=True
+        ).select_related('bio_data_request').order_by('full_name')
+
+        choices = [
+            (emp.id, f"{emp.full_name} ({getattr(emp.bio_data_request, 'employee_id', 'N/A')} - {emp.email})")
+            for emp in all_employees
+        ]
+
+        self.fields['employees'].choices = choices
+        self.fields['employees'].queryset = all_employees
+
+from django import forms
+from django.core.exceptions import ValidationError
+from django.utils import timezone
+from .models import Session
+
+from django import forms
+from django.core.exceptions import ValidationError
+from django.utils import timezone
+from .models import Session, Batch, CustomUser
+
+class SessionForm(forms.ModelForm):
+    class Meta:
+        model = Session
+        fields = ['title', 'batch', 'trainer', 'date_time', 'duration_hours', 'agenda', 'meeting_link', 'status', 'notes']
+        widgets = {
+            'date_time': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'agenda': forms.Textarea(attrs={'rows': 5, 'placeholder': 'List topics, exercises, key points...'}),
+            'notes': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Prerequisites, special instructions, recording info...'}),
+            'meeting_link': forms.URLInput(attrs={'placeholder': 'https://zoom.us/j/... or https://meet.google.com/...'}),
+        }
+        labels = {
+            'title': 'Session Title *',
+            'batch': 'Batch *',
+            'trainer': 'Lead Trainer',
+            'date_time': 'Date & Time *',
+            'duration_hours': 'Duration (hours)',
+            'agenda': 'Agenda / Topics',
+            'meeting_link': 'Meeting Link',
+            'status': 'Status',
+            'notes': 'Additional Notes',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Optional: You can keep default queryset for trainer (all possible trainers)
+        # We will enforce correct trainer in clean() below
+        self.fields['trainer'].queryset = CustomUser.objects.filter(
+            role__in=['trainer', 'admin', 'super_admin'],
+            is_active=True
+        ).order_by('full_name')
+
+    def clean_date_time(self):
+        date_time = self.cleaned_data.get('date_time')
+        if not date_time:
+            raise ValidationError("Date and time are required.")
+        if date_time < timezone.now():
+            raise ValidationError("Cannot schedule a session in the past.")
+        return date_time
+
+    def clean_duration_hours(self):
+        duration = self.cleaned_data.get('duration_hours')
+        if duration is not None:
+            if duration < 0.5:
+                raise ValidationError("Duration must be at least 30 minutes.")
+            if duration > 8:
+                raise ValidationError("Duration cannot exceed 8 hours (please split into multiple sessions).")
+        return duration
+
+    def clean_meeting_link(self):
+        link = self.cleaned_data.get('meeting_link')
+        if link and not link.startswith(('http://', 'https://')):
+            raise ValidationError("Please enter a valid URL (starting with http:// or https://).")
+        return link
+
+    def clean(self):
+        cleaned_data = super().clean()
+        batch = cleaned_data.get('batch')
+        trainer = cleaned_data.get('trainer')
+
+        # Enforce: trainer must be one of the batch's assigned trainers (if both selected)
+        if batch and trainer:
+            if trainer not in batch.trainers.all():
+                self.add_error('trainer', ValidationError(
+                    f"Selected trainer ({trainer.full_name or trainer.email}) is not assigned to this batch ({batch.name}). "
+                    "Please choose a trainer from the batch's assigned trainers list."
+                ))
+
+        return cleaned_data
+
+
+# Edit form inherits the same validations
+class SessionEditForm(SessionForm):
+    class Meta(SessionForm.Meta):
+        exclude = ['created_by', 'batch']  # Don't allow changing batch after creation
+
+    def clean(self):
+        cleaned_data = super().clean()
+        trainer = cleaned_data.get('trainer')
+
+        # For edit: use the existing session's batch to validate trainer
+        if self.instance and self.instance.pk:
+            batch = self.instance.batch
+            if trainer and trainer not in batch.trainers.all():
+                self.add_error('trainer', ValidationError(
+                    f"Selected trainer ({trainer.full_name or trainer.email}) is not assigned to this batch ({batch.name})."
+                ))
+
+        return cleaned_data
+
+
+
+
+
+# Assignment Forms
+class AssignmentForm(forms.ModelForm):
+    class Meta:
+        model = Assignment
+        fields = ['title', 'batch', 'session', 'due_date', 'max_score', 'description', 'rubric', 'submission_format', 'status', 'notes']
+        widgets = {
+            'due_date': forms.DateInput(attrs={'type': 'date'}),
+            'description': forms.Textarea(attrs={'rows': 6}),
+            'rubric': forms.Textarea(attrs={'rows': 4}),
+            'submission_format': forms.Textarea(attrs={'rows': 4}),
+            'notes': forms.Textarea(attrs={'rows': 3}),
+        }
+
+
+class AssignmentEditForm(AssignmentForm):
+    class Meta(AssignmentForm.Meta):
+        exclude = ['created_by', 'batch']  # Usually don't change batch
+
+
+# Submission Form (for employees to submit)
+class SubmissionForm(forms.ModelForm):
+    class Meta:
+        model = Submission
+        fields = ['file']
+        widgets = {
+            'file': forms.FileInput(attrs={'accept': '.zip,.pdf,.py,.docx,.jpg,.png'}),
+        }

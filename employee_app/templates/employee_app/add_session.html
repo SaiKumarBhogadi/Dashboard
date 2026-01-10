@@ -1,0 +1,191 @@
+{% extends 'employee_app/base.html' %}
+
+{% block page_title %}Add New Session{% endblock %}
+
+{% block extra_css %}
+<style>
+  .content-area { padding: 30px 15px; }
+  .content-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    overflow: hidden;
+  }
+  .card-header {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 2.5rem 3rem;
+    text-align: center;
+  }
+  .card-header h2 { font-weight: 700; margin: 0; font-size: 2.2rem; }
+  .card-header .card-subtitle { font-size: 1.1rem; opacity: 0.9; }
+  .form-section { padding: 2rem 3rem; }
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 1.5rem;
+    border-bottom: 3px solid #6366f1;
+    padding-bottom: 0.8rem;
+  }
+  .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem; }
+  .form-group label { font-weight: 500; color: #334155; margin-bottom: 0.5rem; display: block; }
+  .form-control {
+    height: 48px;
+    padding: 0 16px;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+  }
+  .form-control:focus { border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.2); outline: none; }
+  .help-text { font-size: 0.9rem; color: #64748b; margin-top: 0.4rem; }
+  .form-actions { text-align: center; padding: 2rem 3rem; border-top: 1px solid #e2e8f0; }
+  .btn-lg { padding: 0.8rem 2.5rem; font-size: 1.1rem; }
+  @media (max-width: 992px) { .form-row { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-area">
+  <div class="content-card">
+    <div class="card-header">
+      <h2>Add New Session</h2>
+      <p class="card-subtitle">Schedule a new training session with complete details</p>
+    </div>
+
+    <form method="post" id="sessionForm" class="p-4">
+      {% csrf_token %}
+
+      <div class="form-section">
+        <h3 class="section-title">Session Information</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label required" for="{{ form.title.id_for_label }}">{{ form.title.label }}</label>
+            {{ form.title }}
+            {% if form.title.errors %}<small class="text-danger">{{ form.title.errors|join:" • " }}</small>{% endif %}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label required" for="{{ form.batch.id_for_label }}">{{ form.batch.label }}</label>
+            {{ form.batch }}
+            {% if form.batch.errors %}<small class="text-danger">{{ form.batch.errors|join:" • " }}</small>{% endif %}
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label required" for="{{ form.date_time.id_for_label }}">{{ form.date_time.label }}</label>
+            {{ form.date_time }}
+            {% if form.date_time.errors %}<small class="text-danger">{{ form.date_time.errors|join:" • " }}</small>{% endif %}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="{{ form.duration_hours.id_for_label }}">{{ form.duration_hours.label }}</label>
+            {{ form.duration_hours }}
+            {% if form.duration_hours.errors %}<small class="text-danger">{{ form.duration_hours.errors|join:" • " }}</small>{% endif %}
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group full-width">
+            <label class="form-label" for="{{ form.agenda.id_for_label }}">{{ form.agenda.label }}</label>
+            {{ form.agenda }}
+            {% if form.agenda.errors %}<small class="text-danger">{{ form.agenda.errors|join:" • " }}</small>{% endif %}
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="{{ form.meeting_link.id_for_label }}">{{ form.meeting_link.label }}</label>
+            {{ form.meeting_link }}
+            {% if form.meeting_link.errors %}<small class="text-danger">{{ form.meeting_link.errors|join:" • " }}</small>{% endif %}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="{{ form.status.id_for_label }}">{{ form.status.label }}</label>
+            {{ form.status }}
+            {% if form.status.errors %}<small class="text-danger">{{ form.status.errors|join:" • " }}</small>{% endif %}
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group full-width">
+            <label class="form-label" for="{{ form.notes.id_for_label }}">{{ form.notes.label }}</label>
+            {{ form.notes }}
+            {% if form.notes.errors %}<small class="text-danger">{{ form.notes.errors|join:" • " }}</small>{% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="section-title">Lead Trainer</h3>
+        <div class="form-group full-width">
+          <label class="form-label" for="{{ form.trainer.id_for_label }}">{{ form.trainer.label }}</label>
+          {{ form.trainer }}
+          {% if form.trainer.errors %}<small class="text-danger">{{ form.trainer.errors|join:" • " }}</small>{% endif %}
+          <small class="help-text">Only trainers assigned to the selected batch are shown</small>
+        </div>
+      </div>
+
+      <div class="form-actions text-center mt-5">
+        <button type="submit" class="btn btn-primary btn-lg px-5 py-3">Create Session</button>
+        <a href="{% url 'employee_app:training_dashboard' %}" class="btn btn-outline-secondary btn-lg px-5 py-3 ms-3">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Real-time Trainer Filtering -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const batchSelect = document.getElementById('id_batch');
+  const trainerSelect = document.getElementById('id_trainer');
+
+  // Store initial trainer options (all possible)
+  const initialTrainers = Array.from(trainerSelect.options).map(opt => ({
+    value: opt.value,
+    text: opt.textContent
+  }));
+
+  function updateTrainers(batchId) {
+    trainerSelect.innerHTML = '<option value="">Loading trainers...</option>';
+
+    if (!batchId) {
+      // No batch → show all trainers
+      trainerSelect.innerHTML = '<option value="">Select Trainer</option>';
+      initialTrainers.forEach(opt => {
+        if (opt.value) {
+          const option = new Option(opt.text, opt.value);
+          trainerSelect.add(option);
+        }
+      });
+      return;
+    }
+
+    // Fetch real trainers for this batch
+    fetch(`/get-batch-trainers/?batch_id=${batchId}`)
+      .then(response => response.json())
+      .then(data => {
+        trainerSelect.innerHTML = '<option value="">Select Trainer</option>';
+        data.trainers.forEach(trainer => {
+          const option = new Option(trainer.name, trainer.id);
+          trainerSelect.add(option);
+        });
+      })
+      .catch(() => {
+        trainerSelect.innerHTML = '<option value="">Error loading trainers</option>';
+      });
+  }
+
+  // Pre-filter if batch is already selected (from batch detail page)
+  if (batchSelect.value) {
+    updateTrainers(batchSelect.value);
+  }
+
+  // Update when batch changes
+  batchSelect.addEventListener('change', function () {
+    updateTrainers(this.value);
+  });
+});
+</script>
+{% endblock %}

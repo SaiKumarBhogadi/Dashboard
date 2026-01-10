@@ -1,4 +1,6 @@
-{# training_dashboard.html - Full Template with Tabs, Pagination (HTML-only data) #}
+
+
+{# training.html - Full Admin/Trainer Dashboard with Tabs, Search & Pagination #}
 {% extends 'employee_app/base.html' %}
 
 {% block page_title %}Training Dashboard{% endblock %}
@@ -7,394 +9,245 @@
 <div class="content-area">
   <div class="content-card">
 
-    {% if user.role == 'trainer' or user.role == 'admin' or user.role == 'super_admin' %}
+    <!-- Header -->
+    <div class="card-header">
+      <h2>Training Dashboard</h2>
+      <p class="card-subtitle">Manage batches, sessions, assignments, and track overall progress</p>
+      {% comment %} <div class="header-action">
+        <a href="{% url 'employee_app:create_batch' %}" class="btn btn-primary">+ Create New Batch</a>
+      </div> {% endcomment %}
+    </div>
 
-      <!-- Trainer / Admin View -->
-      <div class="card-header">
-        <h2>Training Dashboard</h2>
-        <p class="card-subtitle">Manage batches, sessions, assignments, and track overall progress</p>
-        <div class="header-action">
-          <a href="{% url 'employee_app:create_batch' %}" class="btn btn-primary">+ Create New Batch</a>
-        </div>
+    <!-- Quick Stats -->
+    <div class="training-stats-grid">
+      <div class="stat-card">
+        <h3>Active Batches</h3>
+        <p class="stat-number">{{ active_batches_count }}</p>
+      </div>
+      <div class="stat-card">
+        <h3>Total Sessions</h3>
+        <p class="stat-number">{{ total_sessions }}</p>
+      </div>
+      <div class="stat-card">
+        <h3>Pending Assignments</h3>
+        <p class="stat-number">{{ pending_assignments }}</p>
+      </div>
+      <div class="stat-card">
+        <h3>Employees Enrolled</h3>
+        <p class="stat-number">{{ enrolled_employees }}</p>
+      </div>
+    </div>
+
+    <!-- Search Bar -->
+    <!-- Search Bar -->
+      <div class="search-container">
+        <form method="get" class="search-form">
+          <input type="text" name="q" class="search-input" placeholder="Search by batch name, session title, assignment..." value="{{ search_query }}">
+          <button type="submit" class="btn btn-primary search-btn">Search</button>
+          {% if search_query %}
+            <a href="{% url 'employee_app:training_dashboard' %}" class="btn clear-btn">Clear</a>
+          {% endif %}
+        </form>
       </div>
 
-      <!-- Quick Stats -->
-      <div class="training-stats-grid">
-        <div class="stat-card">
-          <h3>Active Batches</h3>
-          <p class="stat-number">12</p>
-        </div>
-        <div class="stat-card">
-          <h3>Total Sessions</h3>
-          <p class="stat-number">68</p>
-        </div>
-        <div class="stat-card">
-          <h3>Pending Assignments</h3>
-          <p class="stat-number">24</p>
-        </div>
-        <div class="stat-card">
-          <h3>Employees Enrolled</h3>
-          <p class="stat-number">184</p>
-        </div>
+    <!-- Tab Navigation -->
+    <div class="tab-navigation">
+      <button class="tab-btn active" data-tab="batches">Batches</button>
+      <button class="tab-btn" data-tab="sessions">Sessions</button>
+      <button class="tab-btn" data-tab="assignments">Assignments</button>
+    </div>
+
+    <!-- Batches Tab -->
+    <div id="batches" class="tab-content active">
+      <div class="section-header">
+        <h3>Batches</h3>
+        <a href="{% url 'employee_app:create_batch' %}" class="btn btn-primary">+ Add Batch</a>
       </div>
 
-      <!-- Tab Navigation -->
-      <div class="tab-navigation">
-        <button class="tab-btn active" data-tab="batches">Batches</button>
-        <button class="tab-btn" data-tab="sessions">Sessions</button>
-        <button class="tab-btn" data-tab="assignments">Assignments</button>
+      <div class="table-container">
+        <table class="employees-biodata-table">
+          <thead>
+            <tr>
+              <th>Batch Name</th>
+              <th>Start Date</th>
+              <th>End Date</th>
+              <th>Trainer(s)</th>
+              <th>Employees</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for batch in batches %}
+              <tr>
+                <td><a href="{% url 'employee_app:batch_detail' batch.pk %}">{{ batch.name }}</a></td>
+                <td>{{ batch.start_date|date:"d M Y" }}</td>
+                <td>{{ batch.end_date|date:"d M Y" }}</td>
+                <td>{{ batch.trainers.all|join:", " }}</td>
+                <td>{{ batch.employees.count }}</td>
+                <td><span class="status-badge {{ batch.status }}">{{ batch.get_status_display }}</span></td>
+                <td>
+                  <a href="{% url 'employee_app:edit_batch' batch.pk %}" class="action-icon-btn" title="Edit">✏️</a>
+                  <!-- Delete button can be added later with confirmation -->
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="7" class="text-center py-4">No batches found{% if search_query %} matching "{{ search_query }}"{% endif %}.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
 
-      <!-- Batches Tab -->
-      <div id="batches" class="tab-content active">
-        <div class="section-header">
-          <h3>Batches</h3>
-          <a href="{% url 'employee_app:create_batch' %}" class="btn btn-primary">+ Add Batch</a>
+      <!-- Batches Pagination -->
+      {% if batches.has_other_pages %}
+        <div class="table-pagination" id="batches-pagination">
+          <div class="pagination-controls">
+            {% if batches.has_previous %}
+              <button class="pagination-btn" onclick="location.href='?batches_page={{ batches.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}'">Previous</button>
+            {% endif %}
+
+            <span class="page-info">Page {{ batches.number }} of {{ batches.paginator.num_pages }} ({{ batches.paginator.count }} total)</span>
+
+            {% if batches.has_next %}
+              <button class="pagination-btn" onclick="location.href='?batches_page={{ batches.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}'">Next</button>
+            {% endif %}
+          </div>
         </div>
-        <div class="table-container">
-          <table class="employees-biodata-table">
-            <thead>
-              <tr>
-                <th>Batch Name</th>
-                <th>Start Date</th>
-                <th>End Date</th>
-                <th>Trainer(s)</th>
-                <th>Employees</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="batches-tbody">
-              <!-- All batch rows directly in HTML (20+ for pagination demo) -->
-              <tr>
-                <td><a href="{% url 'employee_app:batch_details'  %}">Python Full Stack - Batch 2026-A</a></td>
-                <td>05 Jan 2026</td>
-                <td>05 Jun 2026</td>
-                <td>Rajesh Kumar, Priya Sharma</td>
-                <td>22</td>
-                <td><span class="status-badge ongoing">Ongoing</span></td>
-                <td>
-                  <a href="{% url 'employee_app:edit_batch'  %}" class="action-icon-btn" title="Edit">✏️</a>
-                  <button class="action-icon-btn delete" title="Delete">🗑️</button>
-                </td>
-              </tr>
-              <tr>
-                <td><a href="{% url 'employee_app:batch_details'  %}">React & Node.js - Batch 2026-B</a></td>
-                <td>15 Jan 2026</td>
-                <td>15 Jul 2026</td>
-                <td>John Doe</td>
-                <td>18</td>
-                <td><span class="status-badge ongoing">Ongoing</span></td>
-                <td>
-                  <a href="{% url 'employee_app:edit_batch'  %}" class="action-icon-btn" title="Edit">✏️</a>
-                  <button class="action-icon-btn delete" title="Delete">🗑️</button>
-                </td>
-              </tr>
-              <tr>
-                <td><a href="{% url 'employee_app:batch_details'  %}">Data Science Bootcamp - Batch 2025-D</a></td>
-                <td>01 Oct 2025</td>
-                <td>31 Mar 2026</td>
-                <td>Meera Nair, Anil Verma</td>
-                <td>15</td>
-                <td><span class="status-badge completed">Completed</span></td>
-                <td>
-                  <a href="{% url 'employee_app:edit_batch'  %}" class="action-icon-btn" title="Edit">✏️</a>
-                  <button class="action-icon-btn delete" title="Delete">🗑️</button>
-                </td>
-              </tr>
-              <tr>
-                <td><a href="{% url 'employee_app:batch_details'  %}">DevOps Essentials - Batch 2026-C</a></td>
-                <td>01 Feb 2026</td>
-                <td>30 Apr 2026</td>
-                <td>Suresh Reddy</td>
-                <td>20</td>
-                <td><span class="status-badge pending">Upcoming</span></td>
-                <td>
-                  <a href="{% url 'employee_app:edit_batch'  %}" class="action-icon-btn" title="Edit">✏️</a>
-                  <button class="action-icon-btn delete" title="Delete">🗑️</button>
-                </td>
-              </tr>
-              <tr>
-                <td><a href="#">Machine Learning Advanced - Batch 2026-E</a></td>
-                <td>10 Mar 2026</td>
-                <td>10 Aug 2026</td>
-                <td>Anil Verma, Rajesh Kumar</td>
-                <td>25</td>
-                <td><span class="status-badge pending">Upcoming</span></td>
-                <td>
-                  <a href="#" class="action-icon-btn" title="Edit">✏️</a>
-                  <button class="action-icon-btn delete" title="Delete">🗑️</button>
-                </td>
-              </tr>
-              <tr>
-                <td><a href="#">Full Stack Java - Batch 2026-F</a></td>
-                <td>20 Feb 2026</td>
-                <td>20 Jul 2026</td>
-                <td>Priya Sharma</td>
-                <td>19</td>
-                <td><span class="status-badge ongoing">Ongoing</span></td>
-                <td>
-                  <a href="#" class="action-icon-btn" title="Edit">✏️</a>
-                  <button class="action-icon-btn delete" title="Delete">🗑️</button>
-                </td>
-              </tr>
-              <!-- Add more rows as needed to test pagination (total >10) -->
-            </tbody>
-          </table>
-        </div>
-        <div class="table-pagination" id="batches-pagination"></div>
+      {% endif %}
+    </div>
+
+    <!-- Sessions Tab -->
+    <div id="sessions" class="tab-content">
+      <div class="section-header">
+        <h3>Sessions</h3>
+        <a href="{% url 'employee_app:create_session' %}" class="btn btn-primary">+ Add Session</a>
       </div>
 
-      <!-- Sessions Tab -->
-      <div id="sessions" class="tab-content">
-        <div class="section-header">
-          <h3>Sessions</h3>
-          <a href="{% url 'employee_app:create_session' %}" class="btn btn-primary">+ Add Session</a>
-        </div>
-        <div class="table-container">
-          <table class="employees-biodata-table">
-            <thead>
+      <div class="table-container">
+        <table class="employees-biodata-table">
+          <thead>
+            <tr>
+              <th>Session Title</th>
+              <th>Batch</th>
+              <th>Date & Time</th>
+              <th>Duration</th>
+              <th>Topic</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for session in sessions %}
               <tr>
-                <th>Session Title</th>
-                <th>Batch</th>
-                <th>Date & Time</th>
-                <th>Duration</th>
-                <th>Topic</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="sessions-tbody">
-              <tr>
-                <td><a href="{% url 'employee_app:session_details'  %}">Python Fundamentals</a></td>
-                <td>Python Full Stack - Batch 2026-A</td>
-                <td>08 Jan 2026, 10:00 AM</td>
-                <td>2h</td>
-                <td>Variables, Data Types, Control Flow</td>
-                <td><span class="status-badge ongoing">Live Now</span></td>
+                <td><a href="{% url 'employee_app:session_detail' session.pk %}">{{ session.title }}</a></td>
+                <td>{{ session.batch.name }}</td>
+                <td>{{ session.date_time|date:"d M Y, H:i" }}</td>
+                <td>{{ session.duration_hours }}h</td>
+                <td>{{ session.agenda|truncatewords:10 }}</td>
+                <td><span class="status-badge {{ session.status }}">{{ session.get_status_display }}</span></td>
                 <td>
-                  <a href="{% url 'employee_app:edit_session'  %}" class="action-icon-btn" title="Edit">✏️</a>
-                  <button class="action-icon-btn delete" title="Delete">🗑️</button>
+                  <a href="{% url 'employee_app:edit_session' session.pk %}" class="action-icon-btn" title="Edit">✏️</a>
                 </td>
               </tr>
+            {% empty %}
               <tr>
-                <td><a href="#">Advanced React Hooks</a></td>
-                <td>React & Node.js - Batch 2026-B</td>
-                <td>10 Jan 2026, 2:00 PM</td>
-                <td>1.5h</td>
-                <td>useEffect, Custom Hooks</td>
-                <td><span class="status-badge pending">Upcoming</span></td>
+                <td colspan="7" class="text-center py-4">No sessions found{% if search_query %} matching "{{ search_query }}"{% endif %}.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Sessions Pagination -->
+      {% if sessions.has_other_pages %}
+        <div class="table-pagination" id="sessions-pagination">
+          <div class="pagination-controls">
+            {% if sessions.has_previous %}
+              <button class="pagination-btn" onclick="location.href='?sessions_page={{ sessions.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}'">Previous</button>
+            {% endif %}
+
+            <span class="page-info">Page {{ sessions.number }} of {{ sessions.paginator.num_pages }} ({{ sessions.paginator.count }} total)</span>
+
+            {% if sessions.has_next %}
+              <button class="pagination-btn" onclick="location.href='?sessions_page={{ sessions.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}'">Next</button>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Assignments Tab -->
+    <div id="assignments" class="tab-content">
+      <div class="section-header">
+        <h3>Assignments</h3>
+        <a href="{% url 'employee_app:create_assignment' %}" class="btn btn-primary">+ Add Assignment</a>
+      </div>
+
+      <div class="table-container">
+        <table class="employees-biodata-table">
+          <thead>
+            <tr>
+              <th>Assignment Title</th>
+              <th>Batch</th>
+              <th>Session</th>
+              <th>Due Date</th>
+              <th>Max Score</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for assignment in assignments %}
+              <tr>
+                <td><a href="{% url 'employee_app:assignment_detail' assignment.pk %}">{{ assignment.title }}</a></td>
+                <td>{{ assignment.batch.name }}</td>
+                <td>{% if assignment.session %}{{ assignment.session.title }}{% else %}—{% endif %}</td>
+                <td>{{ assignment.due_date|date:"d M Y" }}</td>
+                <td>{{ assignment.max_score }}</td>
+                <td><span class="status-badge {{ assignment.status }}">{{ assignment.get_status_display }}</span></td>
                 <td>
-                  <a href="#" class="action-icon-btn" title="Edit">✏️</a>
-                  <button class="action-icon-btn delete" title="Delete">🗑️</button>
+                  <a href="{% url 'employee_app:edit_assignment' assignment.pk %}" class="action-icon-btn" title="Edit">✏️</a>
                 </td>
               </tr>
+            {% empty %}
               <tr>
-                <td><a href="#">Pandas & Data Cleaning</a></td>
-                <td>Data Science Bootcamp - Batch 2025-D</td>
-                <td>20 Dec 2025, 11:00 AM</td>
-                <td>2h</td>
-                <td>DataFrames, Handling Missing Data</td>
-                <td><span class="status-badge completed">Completed</span></td>
-                <td>
-                  <a href="#" class="action-icon-btn" title="Edit">✏️</a>
-                  <button class="action-icon-btn delete" title="Delete">🗑️</button>
-                </td>
+                <td colspan="7" class="text-center py-4">No assignments found{% if search_query %} matching "{{ search_query }}"{% endif %}.</td>
               </tr>
-              <!-- More rows -->
-            </tbody>
-          </table>
-        </div>
-        <div class="table-pagination" id="sessions-pagination"></div>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
 
-      <!-- Assignments Tab -->
-      <div id="assignments" class="tab-content">
-        <div class="section-header">
-          <h3>Assignments</h3>
-          <a href="{% url 'employee_app:create_assignment' %}" class="btn btn-primary">+ Add Assignment</a>
-        </div>
-        <div class="table-container">
-          <table class="employees-biodata-table">
-            <thead>
-              <tr>
-                <th>Assignment Title</th>
-                <th>Batch</th>
-                <th>Session</th>
-                <th>Due Date</th>
-                <th>Max Score</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="assignments-tbody">
-              <tr>
-                <td><a href="{% url 'employee_app:assignment_details'  %}">Python Basics Project</a></td>
-                <td>Python Full Stack - Batch 2026-A</td>
-                <td>Python Fundamentals</td>
-                <td>15 Jan 2026</td>
-                <td>100</td>
-                <td><span class="status-badge pending">Pending</span></td>
-                <td>
-                  <a href="{% url 'employee_app:edit_assignment'  %}" class="action-icon-btn" title="Edit">✏️</a>
-                  <button class="action-icon-btn delete" title="Delete">🗑️</button>
-                </td>
-              </tr>
-              <tr>
-                <td><a href="#">Todo App with React</a></td>
-                <td>React & Node.js - Batch 2026-B</td>
-                <td>Advanced React Hooks</td>
-                <td>20 Jan 2026</td>
-                <td>150</td>
-                <td><span class="status-badge ongoing">In Progress</span></td>
-                <td>
-                  <a href="#" class="action-icon-btn" title="Edit">✏️</a>
-                  <button class="action-icon-btn delete" title="Delete">🗑️</button>
-                </td>
-              </tr>
-              <!-- More rows -->
-            </tbody>
-          </table>
-        </div>
-        <div class="table-pagination" id="assignments-pagination"></div>
-      </div>
+      <!-- Assignments Pagination -->
+      {% if assignments.has_other_pages %}
+        <div class="table-pagination" id="assignments-pagination">
+          <div class="pagination-controls">
+            {% if assignments.has_previous %}
+              <button class="pagination-btn" onclick="location.href='?assignments_page={{ assignments.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}'">Previous</button>
+            {% endif %}
 
-    {% else %}
-       <!-- Employee View -->
-      <div class="card-header">
-        <h2>My Training</h2>
-        <p class="card-subtitle">Track your learning journey, upcoming sessions, and assignments</p>
-      </div>
+            <span class="page-info">Page {{ assignments.number }} of {{ assignments.paginator.num_pages }} ({{ assignments.paginator.count }} total)</span>
 
-      <!-- My Batches -->
-      <div class="section-block">
-        <div class="section-header">
-          <h3>My Enrolled Batches</h3>
+            {% if assignments.has_next %}
+              <button class="pagination-btn" onclick="location.href='?assignments_page={{ assignments.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}'">Next</button>
+            {% endif %}
+          </div>
         </div>
-        <div class="table-container">
-          <table class="employees-biodata-table">
-            <thead>
-              <tr>
-                <th>Batch Name</th>
-                <th>Start Date</th>
-                <th>End Date</th>
-                <th>Trainer(s)</th>
-                <th>Progress</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Python Full Stack - Batch 2026-A</td>
-                <td>05 Jan 2026</td>
-                <td>05 Jun 2026</td>
-                <td>Rajesh Kumar, Priya Sharma</td>
-                <td><span class="status-badge ongoing">32%</span></td>
-                <td><span class="status-badge ongoing">Ongoing</span></td>
-                <td><a href="#" class="action-icon-btn" title="View Details">👁️</a></td>
-              </tr>
-              <tr>
-                <td>DevOps Essentials - Batch 2026-C</td>
-                <td>01 Feb 2026</td>
-                <td>30 Apr 2026</td>
-                <td>Suresh Reddy</td>
-                <td><span class="status-badge pending">0%</span></td>
-                <td><span class="status-badge pending">Upcoming</span></td>
-                <td><a href="#" class="action-icon-btn" title="View Details">👁️</a></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Upcoming Sessions -->
-      <div class="section-block">
-        <div class="section-header">
-          <h3>Upcoming Sessions</h3>
-        </div>
-        <div class="table-container">
-          <table class="employees-biodata-table">
-            <thead>
-              <tr>
-                <th>Date & Time</th>
-                <th>Session Title</th>
-                <th>Batch</th>
-                <th>Duration</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Today, 10:00 AM</td>
-                <td>Python Fundamentals</td>
-                <td>Python Full Stack - Batch 2026-A</td>
-                <td>2h</td>
-                <td><span class="status-badge ongoing">Live Now</span></td>
-              </tr>
-              <tr>
-                <td>10 Jan 2026, 2:00 PM</td>
-                <td>Functions & Modules</td>
-                <td>Python Full Stack - Batch 2026-A</td>
-                <td>1.5h</td>
-                <td><span class="status-badge pending">Upcoming</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Pending Assignments -->
-      <div class="section-block">
-        <div class="section-header">
-          <h3>Pending Assignments</h3>
-        </div>
-        <div class="table-container">
-          <table class="employees-biodata-table">
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Due Date</th>
-                <th>Batch / Session</th>
-                <th>Max Score</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Python Basics Project</td>
-                <td>15 Jan 2026</td>
-                <td>Python Full Stack / Python Fundamentals</td>
-                <td>100</td>
-                <td><span class="status-badge pending">Not Submitted</span></td>
-                <td><a href="#" class="btn btn-primary btn-sm">Submit Now</a></td>
-              </tr>
-              <tr>
-                <td>Simple Calculator App</td>
-                <td>20 Jan 2026</td>
-                <td>Python Full Stack / Functions & Modules</td>
-                <td>80</td>
-                <td><span class="status-badge ongoing">In Progress</span></td>
-                <td><a href="#" class="btn btn-primary btn-sm">Continue</a></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    {% endif %}
+      {% endif %}
+    </div>
 
   </div>
 </div>
- 
 
 
 
 
+<!-- Your Pagination JS (unchanged) -->
 <script>
 const itemsPerPage = 10;
 
-// Generic pagination function
 function paginateTable(tableId, paginationId) {
   const table = document.querySelector(tableId);
   const tbody = table.querySelector('tbody');
@@ -409,7 +262,6 @@ function paginateTable(tableId, paginationId) {
       row.style.display = (index >= (page - 1) * itemsPerPage && index < page * itemsPerPage) ? '' : 'none';
     });
 
-    // Update pagination controls
     const pagination = document.getElementById(paginationId);
     pagination.innerHTML = '';
 
@@ -443,7 +295,7 @@ function paginateTable(tableId, paginationId) {
   showPage(1);
 }
 
-// Tab switching
+// Tab switching + re-init pagination
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -452,17 +304,14 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
     document.getElementById(btn.dataset.tab).classList.add('active');
 
-    // Re-apply pagination when tab becomes active
+    // Re-paginate active tab
     if (btn.dataset.tab === 'batches') paginateTable('#batches table', 'batches-pagination');
     if (btn.dataset.tab === 'sessions') paginateTable('#sessions table', 'sessions-pagination');
     if (btn.dataset.tab === 'assignments') paginateTable('#assignments table', 'assignments-pagination');
   });
 });
 
-// Initialize pagination on load
+// Initialize on load
 paginateTable('#batches table', 'batches-pagination');
 </script>
-
-
-
 {% endblock %}

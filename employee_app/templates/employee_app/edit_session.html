@@ -1,104 +1,106 @@
-{# session_edit.html - Edit Existing Session #}
 {% extends 'employee_app/base.html' %}
 
-{% block page_title %}Edit Session{% endblock %}
+{% block page_title %}Edit Session: {{ session.title }}{% endblock %}
 
 {% block content %}
 <div class="content-area">
-  <div class="content-card">
+  <div class="content-card" style="max-width: 1100px; margin: 0 auto;">
+
+    <!-- Header -->
     <div class="card-header">
-      <h2>Edit Session: Python Fundamentals</h2>
-      <p class="card-subtitle">Update session details and materials</p>
+      <h2>Edit Session: {{ session.title }}</h2>
+      <p class="card-subtitle">
+        Batch: {{ session.batch.name }} • 
+        Status: <span class="status-badge {{ session.status }}">{{ session.get_status_display }}</span>
+      </p>
     </div>
 
-    <form method="post" enctype="multipart/form-data" class="biodata-form">
+    <form method="post" class="p-4">
       {% csrf_token %}
 
+      <!-- Session Information -->
       <div class="form-section">
         <h3 class="section-title">Session Information</h3>
 
         <div class="form-row">
           <div class="form-group">
-            <label for="id_title">Session Title <span class="text-danger">*</span></label>
-            <input type="text" name="title" id="id_title" class="form-control" 
-                   value="Python Fundamentals" required>
+            <label class="form-label required">Session Title</label>
+            {{ form.title }}
+            {% if form.title.errors %}<small class="text-danger">{{ form.title.errors|join:" • " }}</small>{% endif %}
           </div>
+
+          <!-- Batch is read-only in edit -->
           <div class="form-group">
-            <label for="id_batch">Batch <span class="text-danger">*</span></label>
-            <select name="batch" id="id_batch" class="form-control" required>
-              <option value="">--- Select Batch ---</option>
-              <option value="1" selected>Python Full Stack - Batch 2026-A</option>
-              <option value="2">React & Node.js - Batch 2026-B</option>
-            </select>
+            <label class="form-label">Batch</label>
+            <input type="text" class="form-control" value="{{ session.batch.name }}" readonly>
+            <small class="help-text text-muted">Batch cannot be changed after creation</small>
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label for="id_date_time">Date & Time <span class="text-danger">*</span></label>
-            <input type="datetime-local" name="date_time" id="id_date_time" class="form-control" 
-                   value="2026-01-08T10:00" required>
+            <label class="form-label required">Date & Time</label>
+            {{ form.date_time }}
+            {% if form.date_time.errors %}<small class="text-danger">{{ form.date_time.errors|join:" • " }}</small>{% endif %}
           </div>
-          <div class="form-group">
-            <label for="id_duration">Duration (hours)</label>
-            <input type="number" name="duration" id="id_duration" class="form-control" 
-                   min="0.5" step="0.5" value="2">
-          </div>
-        </div>
 
-        <div class="form-row">
-          <div class="form-group full-width">
-            <label for="id_topic">Topics Covered / Agenda</label>
-            <textarea name="topic" id="id_topic" class="form-control" rows="5">Variables and Data Types
-Basic Operators
-Control Flow (if, elif, else)
-Loops (for, while)
-Functions and Scope
-Introduction to Error Handling</textarea>
-          </div>
-        </div>
-
-        <div class="form-row">
           <div class="form-group">
-            <label for="id_meeting_link">Meeting Link (Zoom/Google Meet)</label>
-            <input type="url" name="meeting_link" id="id_meeting_link" class="form-control" 
-                   value="https://zoom.us/j/9876543210">
-          </div>
-          <div class="form-group">
-            <label for="id_status">Status</label>
-            <select name="status" id="id_status" class="form-control">
-              <option value="pending">Pending</option>
-              <option value="ongoing" selected>Ongoing</option>
-              <option value="completed">Completed</option>
-            </select>
+            <label class="form-label">Duration (hours)</label>
+            {{ form.duration_hours }}
+            {% if form.duration_hours.errors %}<small class="text-danger">{{ form.duration_hours.errors|join:" • " }}</small>{% endif %}
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group full-width">
-            <label>Current Materials</label>
-            <div class="current-files">
-              <p><a href="#">python_fundamentals_slides.pdf</a> <button class="action-icon-btn delete" title="Remove">🗑️</button></p>
-              <p><a href="#">intro_exercises.zip</a> <button class="action-icon-btn delete" title="Remove">🗑️</button></p>
-            </div>
-            <label for="id_new_materials">Add / Replace Materials</label>
-            <input type="file" name="new_materials" id="id_new_materials" class="form-control" multiple 
-                   accept=".pdf,.pptx,.docx,.zip,.xlsx">
-            <small class="help-text">Upload new files or replace existing ones</small>
+            <label class="form-label">Agenda / Topics Covered</label>
+            {{ form.agenda }}
+            {% if form.agenda.errors %}<small class="text-danger">{{ form.agenda.errors|join:" • " }}</small>{% endif %}
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Meeting Link</label>
+            {{ form.meeting_link }}
+            {% if form.meeting_link.errors %}<small class="text-danger">{{ form.meeting_link.errors|join:" • " }}</small>{% endif %}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            {{ form.status }}
+            {% if form.status.errors %}<small class="text-danger">{{ form.status.errors|join:" • " }}</small>{% endif %}
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group full-width">
-            <label for="id_notes">Additional Notes / Feedback</label>
-            <textarea name="notes" id="id_notes" class="form-control" rows="4">Session was interactive. Employees requested more live coding examples. Recording uploaded to shared drive.</textarea>
+            <label class="form-label">Additional Notes</label>
+            {{ form.notes }}
+            {% if form.notes.errors %}<small class="text-danger">{{ form.notes.errors|join:" • " }}</small>{% endif %}
           </div>
         </div>
       </div>
 
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary">Update Session</button>
-        <a href="" class="btn btn-secondary">Cancel</a>
+      <!-- Lead Trainer -->
+      <div class="form-section">
+        <h3 class="section-title">Lead Trainer</h3>
+        <div class="form-group full-width">
+          <label class="form-label">Select Trainer</label>
+          {{ form.trainer }}
+          {% if form.trainer.errors %}<small class="text-danger">{{ form.trainer.errors|join:" • " }}</small>{% endif %}
+          <small class="help-text">Only trainers assigned to this batch are allowed</small>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="form-actions text-center mt-5">
+        <button type="submit" class="btn btn-primary btn-lg px-5 py-3">
+          <i class="fas fa-save me-2"></i> Update Session
+        </button>
+        <a href="{% url 'employee_app:session_detail' session.pk %}" class="btn btn-outline-secondary btn-lg px-5 py-3 ms-3">
+          Cancel
+        </a>
       </div>
     </form>
   </div>

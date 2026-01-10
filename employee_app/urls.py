@@ -23,8 +23,7 @@ urlpatterns = [
     path('dashboard/', dashboard, name='dashboard'),
 
     
-    path('training/', views.training, name='training'),
-    path('training/add/', views.add_trainee, name='add_trainee'), 
+   
     path('projects/', views.projects, name='projects'),
     path('profile/', views.profile, name='profile'),
 
@@ -47,20 +46,42 @@ urlpatterns = [
 
 
       
-    path('batch-form/', views.batch_form, name='create_batch'),
-    path('batch-details/', views.batch_details, name='batch_details'),
-    path('batch-edit/', views.edit_batch, name='edit_batch'),
-    path('session-form/', views.session_form, name='create_session'),
-    path('session-edit/', views.edit_session, name='edit_session'),
-    path('session-details/', views.session_details, name='session_details'),
-    path('assignment-form/', views.assignment_form, name='create_assignment'),
-    path('assignment-edit/', views.edit_assignment, name='edit_assignment'),
-    path('assignment-details/', views.assignment_details, name='assignment_details'),
+  
 
     path('employee/dashboard/', views.employee_dashboard, name='employee_dashboard'),
     path('employee/profile/', views.my_profile, name='my_profile'),
     path('employee/profile/edit/', views.edit_my_profile, name='edit_my_profile'),
 
     path('biodata/delete-pending/<int:pk>/', views.delete_pending_request, name='delete_pending_request'),
-path('biodata/delete-approved/<int:pk>/', views.delete_approved_employee, name='delete_approved_employee'),
+    path('biodata/delete-approved/<int:pk>/', views.delete_approved_employee, name='delete_approved_employee'),
+
+
+    # Admin/Trainer/Scrum Dashboard (full management view)
+    path('training/', views.training_dashboard, name='training_dashboard'),
+
+    # Employee Personal Dashboard
+    path('my-training/', views.my_training, name='my_training'),
+
+    # Batch URLs
+    path('batch/create/', views.create_batch, name='create_batch'),
+    path('batch/<int:pk>/edit/', views.edit_batch, name='edit_batch'),
+    path('batch/<int:pk>/', views.batch_detail, name='batch_detail'),
+
+    # Session URLs (basic - you can expand later)
+    path('session/create/', views.create_session, name='create_session'),
+    path('batch/<int:batch_id>/session/create/', views.create_session, name='create_session_from_batch'),
+    path('get-batch-trainers/', views.get_batch_trainers, name='get_batch_trainers'),
+    path('session/<int:pk>/edit/', views.edit_session, name='edit_session'),
+
+    path('session/<int:pk>/', views.session_detail, name='session_detail'),
+    path('session/<int:session_id>/mark-attendance/', views.mark_attendance, name='mark_attendance'),
+
+    # Assignment URLs (basic)
+    path('assignment/create/', views.create_assignment, name='create_assignment'),
+    path('assignment/<int:pk>/edit/', views.edit_assignment, name='edit_assignment'),
+    path('assignment/<int:pk>/', views.assignment_detail, name='assignment_detail'),
+
+    # Employee Submission
+    path('assignment/<int:assignment_id>/submit/', views.submit_assignment, name='submit_assignment'),
+
 ]
