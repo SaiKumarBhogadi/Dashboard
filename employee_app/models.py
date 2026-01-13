@@ -228,6 +228,27 @@ class BioDataRequest(models.Model):
         return {'pending': 'pending', 'approved': 'completed', 'rejected': 'danger'}[self.status]
     
 
+class BiodataInvitation(models.Model):
+    name = models.CharField(max_length=150)
+    email = models.EmailField()
+    phone = models.CharField(max_length=20, blank=True)
+    sent_at = models.DateTimeField(auto_now_add=True)
+    submitted = models.BooleanField(default=False)
+    submitted_at = models.DateTimeField(null=True, blank=True)
+    bio_data_request = models.ForeignKey(
+        'BioDataRequest', 
+        null=True, 
+        blank=True, 
+        on_delete=models.SET_NULL, 
+        related_name='invitation'
+    )
+
+    def __str__(self):
+        return f"{self.name} - {self.email}"
+
+    class Meta:
+        ordering = ['-sent_at']
+
 class Notification(models.Model):
     recipient = models.ForeignKey(
         'CustomUser',

@@ -6,6 +6,94 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Employee Bio Data Form - STACKLY</title>
   <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+  <style>
+    /* Live validation styles */
+    .form-group { position: relative; margin-bottom: 1.8rem; }
+    .error-message {
+      color: #e53e3e;
+      font-size: 0.85rem;
+      margin-top: 5px;
+      display: none;
+    }
+    .input-error {
+      border-color: #e53e3e !important;
+      box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.2) !important;
+    }
+    .input-success {
+      border-color: #38a169 !important;
+      box-shadow: 0 0 0 3px rgba(56, 161, 105, 0.2) !important;
+    }
+    .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+    .form-group label { font-weight: 500; color: #334155; margin-bottom: 0.5rem; display: block; }
+    .form-control, select.form-control {
+      height: 48px;
+      padding: 0 16px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 15px;
+      transition: all 0.3s;
+    }
+    .form-control:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102,126,234,0.2);
+      outline: none;
+    }
+    textarea.form-control {
+      height: auto;
+      padding: 12px 16px;
+      resize: vertical;
+    }
+    .btn-primary {
+      background: #667eea;
+      border: none;
+      padding: 16px 60px;
+      font-size: 17px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .btn-secondary {
+      background: #f1f5f9;
+      color: #334155;
+      border: 1.5px solid #cbd5e1;
+      padding: 16px 40px;
+      font-size: 17px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .upload-note {
+      font-size: 0.85rem;
+      color: #64748b;
+      margin-top: 5px;
+    }
+    .section-title span.required {
+      color: #e53e3e;
+      font-weight: bold;
+    }
+    .exp-block {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+      background: #f8fafc;
+    }
+    .remove-block {
+      background: #e53e3e;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .add-more-btn {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
 
@@ -13,12 +101,8 @@
   <div class="public-header">
     <h1>Employee Bio Data Form</h1>
     <p>All fields marked <span style="color:#e53e3e;">*</span> are required</p>
-    <div class="note">
-      Please upload clear scanned copies in PDF/JPG/PNG (max 5MB each)
-    </div>
   </div>
 
-  <!-- General Messages -->
   {% if messages %}
     {% for message in messages %}
       <div class="general-message {% if message.tags == 'error' %}general-error{% else %}general-success{% endif %}">
@@ -32,22 +116,23 @@
 
     <!-- PERSONAL DETAILS -->
     <div class="form-section">
-      <h3 class="section-title">Personal Details</h3>
+      <h3 class="section-title">Personal Details <span class="required">*</span></h3>
 
       <div class="form-row">
         <div class="form-group">
-          <label>First Name *</label>
+          <label>First Name <span class="required">*</span></label>
           {{ form.first_name }}
-          {{ form.first_name.errors }}
+          <div class="error-message" id="first_name_error"></div>
         </div>
         <div class="form-group">
           <label>Middle Name</label>
           {{ form.middle_name }}
+          <div class="error-message" id="middle_name_error"></div>
         </div>
         <div class="form-group">
-          <label>Last Name *</label>
+          <label>Last Name <span class="required">*</span></label>
           {{ form.last_name }}
-          {{ form.last_name.errors }}
+          <div class="error-message" id="last_name_error"></div>
         </div>
       </div>
 
@@ -55,88 +140,112 @@
         <div class="form-group">
           <label>Date of Birth</label>
           {{ form.dob }}
+          <div class="error-message" id="dob_error"></div>
         </div>
         <div class="form-group">
           <label>Gender</label>
           {{ form.gender }}
+          <div class="error-message" id="gender_error"></div>
         </div>
         <div class="form-group">
           <label>Marital Status</label>
           {{ form.marital_status }}
+          <div class="error-message" id="marital_status_error"></div>
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-group">
-          <label>Contact Number *</label>
+          <label>Contact Number <span class="required">*</span></label>
           {{ form.contact_number }}
-          {{ form.contact_number.errors }}
+          <div class="error-message" id="contact_number_error"></div>
         </div>
         <div class="form-group">
           <label>Emergency Contact No</label>
           {{ form.emergency_contact }}
+          <div class="error-message" id="emergency_contact_error"></div>
         </div>
         <div class="form-group">
           <label>Blood Group</label>
           {{ form.blood_group }}
+          <div class="error-message" id="blood_group_error"></div>
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-group">
-          <label>Personal Email *</label>
+          <label>Personal Email <span class="required">*</span></label>
           {{ form.personal_email }}
-          {{ form.personal_email.errors }}
+          <div class="error-message" id="personal_email_error"></div>
         </div>
         <div class="form-group">
           <label>Post Applied For</label>
           {{ form.post_applied_for }}
+          <div class="error-message" id="post_applied_for_error"></div>
         </div>
       </div>
+    </div>
 
-      <!-- Address Fields -->
+    <!-- ADDRESS -->
+    <div class="form-section">
+      <h3 class="section-title">Address</h3>
+
       <div class="form-row">
         <div class="form-group">
           <label>Address Line 1</label>
           {{ form.address_line1 }}
+          <div class="error-message" id="address_line1_error"></div>
         </div>
         <div class="form-group">
           <label>Address Line 2</label>
           {{ form.address_line2 }}
+          <div class="error-message" id="address_line2_error"></div>
         </div>
       </div>
+
       <div class="form-row">
         <div class="form-group">
           <label>City</label>
           {{ form.city }}
+          <div class="error-message" id="city_error"></div>
         </div>
         <div class="form-group">
           <label>State / Province / Region</label>
           {{ form.state }}
+          <div class="error-message" id="state_error"></div>
         </div>
       </div>
+
       <div class="form-row">
         <div class="form-group">
           <label>Postal Code</label>
           {{ form.postal_code }}
+          <div class="error-message" id="postal_code_error"></div>
         </div>
         <div class="form-group">
           <label>Country</label>
           {{ form.country }}
+          <div class="error-message" id="country_error"></div>
         </div>
       </div>
+    </div>
 
-      <!-- Aadhar & PAN -->
+    <!-- AADHAR & PAN -->
+    <div class="form-section">
+      <h3 class="section-title">Aadhar & PAN</h3>
+
       <div class="form-row">
         <div class="form-group">
           <label>Aadhar Card No</label>
           {{ form.aadhar_no }}
+          <div class="error-message" id="aadhar_no_error"></div>
         </div>
         <div class="form-group">
           <label>Upload Aadhar Card</label>
           <input type="file" name="aadhar_card" accept=".pdf,image/*">
           {{ form.aadhar_card.errors }}
-          <small>(Re-upload if changed)</small>
+          <div class="error-message" id="aadhar_card_error"></div>
+          <div class="upload-note">Upload below 5 MB (PDF / JPG / PNG)</div>
         </div>
       </div>
 
@@ -144,175 +253,206 @@
         <div class="form-group">
           <label>PAN Card No</label>
           {{ form.pan_no }}
+          <div class="error-message" id="pan_no_error"></div>
         </div>
         <div class="form-group">
           <label>Upload PAN Card</label>
           <input type="file" name="pan_card" accept=".pdf,image/*">
           {{ form.pan_card.errors }}
-          <small>(Re-upload if changed)</small>
+          <div class="error-message" id="pan_card_error"></div>
+          <div class="upload-note">Upload below 5 MB (PDF / JPG / PNG)</div>
         </div>
       </div>
+    </div>
 
-      <!-- Bank Details -->
+    <!-- BANK DETAILS -->
+    <div class="form-section">
+      <h3 class="section-title">Bank Details</h3>
+
       <div class="form-row">
         <div class="form-group">
           <label>Bank Name</label>
           {{ form.bank_name }}
+          <div class="error-message" id="bank_name_error"></div>
         </div>
         <div class="form-group">
           <label>Bank Branch Name</label>
           {{ form.bank_branch }}
+          <div class="error-message" id="bank_branch_error"></div>
         </div>
       </div>
+
       <div class="form-row">
         <div class="form-group">
           <label>Account Number</label>
           {{ form.account_number }}
+          <div class="error-message" id="account_number_error"></div>
         </div>
         <div class="form-group">
           <label>Account Name</label>
           {{ form.account_name }}
+          <div class="error-message" id="account_name_error"></div>
         </div>
         <div class="form-group">
           <label>IFSC Code</label>
           {{ form.ifsc_code }}
+          <div class="error-message" id="ifsc_code_error"></div>
         </div>
       </div>
+    </div>
 
+    <!-- EXPERIENCE TYPE -->
+    <div class="form-section">
+      <h3 class="section-title">Experience Type <span class="required">*</span></h3>
       <div class="form-row">
         <div class="form-group">
-          <label>Fresher or Experience *</label>
           {{ form.experience_type }}
           {{ form.experience_type.errors }}
+          <div class="error-message" id="experience_type_error"></div>
         </div>
       </div>
+    </div>
 
-      <!-- File Uploads -->
+    <!-- WORK EXPERIENCE (Dynamic - appears only if Experienced) -->
+    <div class="form-section" id="workExperienceSection" style="display: none;">
+      <h3 class="section-title">Work Experience</h3>
+      <div id="expContainer"></div>
+      <button type="button" class="add-more-btn" onclick="addExp()">+ Add More Experience</button>
+    </div>
+
+    <!-- FILE UPLOADS - ONLY PHOTO & RESUME -->
+    <div class="form-section">
+      <h3 class="section-title">Document Uploads <span class="required">*</span></h3>
+
       <div class="form-row">
         <div class="form-group">
-          <label>Passport Size Photo *</label>
+          <label>Passport Size Photo <span class="required">*</span></label>
           <input type="file" name="photo" accept="image/*" required>
           {{ form.photo.errors }}
-          <small>(Re-upload if changed)</small>
+          <div class="error-message" id="photo_error"></div>
+          <div class="upload-note">Upload below 1 MB (JPG / PNG)</div>
         </div>
         <div class="form-group">
-          <label>Resume / CV *</label>
+          <label>Resume / CV <span class="required">*</span></label>
           <input type="file" name="resume" accept=".pdf,.doc,.docx" required>
           {{ form.resume.errors }}
-          <small>(Re-upload if changed)</small>
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label>Aadhar Card</label>
-          <input type="file" name="aadhar_card" accept=".pdf,image/*">
-          {{ form.aadhar_card.errors }}
-        </div>
-        <div class="form-group">
-          <label>PAN Card</label>
-          <input type="file" name="pan_card" accept=".pdf,image/*">
-          {{ form.pan_card.errors }}
+          <div class="error-message" id="resume_error"></div>
+          <div class="upload-note">Upload below 5 MB (PDF / DOC / DOCX)</div>
         </div>
       </div>
     </div>
 
     <!-- SSC -->
     <div class="form-section">
-      <h3 class="section-title">Secondary School Certification (SSC / 10th)</h3>
+      <h3 class="section-title">Secondary School Certification (SSC / 10th) <span class="required">*</span></h3>
       <div class="form-row">
         <div class="form-group">
-          <label>School Name with Location *</label>
+          <label>School Name with Location <span class="required">*</span></label>
           {{ form.ssc_school }}
+          <div class="error-message" id="ssc_school_error"></div>
         </div>
         <div class="form-group">
-          <label>Year of Passing *</label>
+          <label>Year of Passing <span class="required">*</span></label>
           {{ form.ssc_year }}
+          <div class="error-message" id="ssc_year_error"></div>
         </div>
         <div class="form-group">
-          <label>Percentage or Grade *</label>
+          <label>Percentage or Grade <span class="required">*</span></label>
           {{ form.ssc_grade }}
+          <div class="error-message" id="ssc_grade_error"></div>
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>Upload SSC Marksheet / Certificate *</label>
+          <label>Upload SSC Marksheet / Certificate <span class="required">*</span></label>
           <input type="file" name="ssc_marksheet" accept=".pdf,image/*" required>
           {{ form.ssc_marksheet.errors }}
-          <small>(Re-upload if changed)</small>
+          <div class="error-message" id="ssc_marksheet_error"></div>
+          <div class="upload-note">Upload below 5 MB (PDF / JPG / PNG)</div>
         </div>
       </div>
     </div>
 
     <!-- SSLC -->
     <div class="form-section">
-      <h3 class="section-title">Secondary School Leaving Certification (SSLC / 12th)</h3>
+      <h3 class="section-title">Secondary School Leaving Certification (SSLC / 12th) <span class="required">*</span></h3>
       <div class="form-row">
         <div class="form-group">
-          <label>School Name with Location *</label>
+          <label>School Name with Location <span class="required">*</span></label>
           {{ form.sslc_school }}
+          <div class="error-message" id="sslc_school_error"></div>
         </div>
         <div class="form-group">
-          <label>Year of Passing *</label>
+          <label>Year of Passing <span class="required">*</span></label>
           {{ form.sslc_year }}
+          <div class="error-message" id="sslc_year_error"></div>
         </div>
         <div class="form-group">
-          <label>Percentage or Grade *</label>
+          <label>Percentage or Grade <span class="required">*</span></label>
           {{ form.sslc_grade }}
+          <div class="error-message" id="sslc_grade_error"></div>
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>Upload SSLC Marksheet / Certificate *</label>
+          <label>Upload SSLC Marksheet / Certificate <span class="required">*</span></label>
           <input type="file" name="sslc_marksheet" accept=".pdf,image/*" required>
           {{ form.sslc_marksheet.errors }}
-          <small>(Re-upload if changed)</small>
+          <div class="error-message" id="sslc_marksheet_error"></div>
+          <div class="upload-note">Upload below 5 MB (PDF / JPG / PNG)</div>
         </div>
       </div>
     </div>
 
     <!-- UG -->
     <div class="form-section">
-      <h3 class="section-title">Under Graduation Details (UG)</h3>
+      <h3 class="section-title">Under Graduation Details (UG) <span class="required">*</span></h3>
       <div class="form-row">
         <div class="form-group">
-          <label>Degree *</label>
+          <label>Degree <span class="required">*</span></label>
           {{ form.ug_degree }}
+          <div class="error-message" id="ug_degree_error"></div>
         </div>
         <div class="form-group">
-          <label>Institution *</label>
+          <label>Institution <span class="required">*</span></label>
           {{ form.ug_institution }}
+          <div class="error-message" id="ug_institution_error"></div>
         </div>
         <div class="form-group">
-          <label>Year of Passing *</label>
+          <label>Year of Passing <span class="required">*</span></label>
           {{ form.ug_year }}
+          <div class="error-message" id="ug_year_error"></div>
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>Upload UG Marksheets + Degree Certificate *</label>
+          <label>Upload UG Marksheets + Degree Certificate <span class="required">*</span></label>
           <input type="file" name="ug_documents" accept=".pdf,image/*" multiple required>
           {{ form.ug_documents.errors }}
-          <small>(Re-upload if changed)</small>
+          <div class="error-message" id="ug_documents_error"></div>
+          <div class="upload-note">Upload below 5 MB (PDF / JPG / PNG)</div>
         </div>
       </div>
     </div>
 
-    <!-- PG -->
+    <!-- PG (Optional) -->
     <div class="form-section">
       <h3 class="section-title">Post Graduation Details (PG) - Optional</h3>
       <div class="form-row">
         <div class="form-group">
           <label>Degree</label>
           {{ form.pg_degree }}
+          <div class="error-message" id="pg_degree_error"></div>
         </div>
         <div class="form-group">
           <label>Institution</label>
           {{ form.pg_institution }}
+          <div class="error-message" id="pg_institution_error"></div>
         </div>
         <div class="form-group">
           <label>Year of Passing</label>
           {{ form.pg_year }}
+          <div class="error-message" id="pg_year_error"></div>
         </div>
       </div>
       <div class="form-row">
@@ -320,57 +460,56 @@
           <label>Upload PG Documents (if any)</label>
           <input type="file" name="pg_documents" accept=".pdf,image/*" multiple>
           {{ form.pg_documents.errors }}
+          <div class="error-message" id="pg_documents_error"></div>
+          <div class="upload-note">Upload below 5 MB (PDF / JPG / PNG) - Optional</div>
         </div>
       </div>
     </div>
 
-    <!-- Certification -->
+    <!-- Certification (Optional) -->
     <div class="form-section">
-      <h3 class="section-title">Certification Courses (if any)</h3>
+      <h3 class="section-title">Certification Courses (if any) - Optional</h3>
       <div class="form-row">
         <div class="form-group">
           <label>Course Name</label>
           {{ form.cert_course }}
+          <div class="error-message" id="cert_course_error"></div>
         </div>
         <div class="form-group">
           <label>Institution</label>
           {{ form.cert_institution }}
+          <div class="error-message" id="cert_institution_error"></div>
         </div>
         <div class="form-group">
           <label>Year</label>
           {{ form.cert_year }}
+          <div class="error-message" id="cert_year_error"></div>
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>Upload Certificate</label>
+          <label>Upload Certificate (if any)</label>
           <input type="file" name="cert_document" accept=".pdf,image/*">
           {{ form.cert_document.errors }}
+          <div class="error-message" id="cert_document_error"></div>
+          <div class="upload-note">Upload below 5 MB (PDF / JPG / PNG) - Optional</div>
         </div>
       </div>
-    </div>
-
-    <!-- Work Experience -->
-    <div class="form-section" id="workExperienceSection" style="display: none;">
-      <h3 class="section-title">Work Experience</h3>
-      <div id="expContainer">
-        <!-- First block is created automatically when "Experienced" is selected -->
-      </div>
-      <button type="button" class="add-more-btn" onclick="addExp()">+ Add More Experience</button>
     </div>
 
     <!-- Skills -->
     <div class="form-section">
-      <h3 class="section-title">Skills</h3>
+      <h3 class="section-title">Skills <span class="required">*</span></h3>
       <div class="form-row">
         <div class="form-group">
-          <label>Technical Skills *</label>
+          <label>Technical Skills <span class="required">*</span></label>
           {{ form.technical_skills }}
-          {{ form.technical_skills.errors }}
+          <div class="error-message" id="technical_skills_error"></div>
         </div>
         <div class="form-group">
           <label>Soft Skills</label>
           {{ form.soft_skills }}
+          <div class="error-message" id="soft_skills_error"></div>
         </div>
       </div>
     </div>
@@ -382,16 +521,19 @@
         <div class="form-group">
           <label>Name</label>
           {{ form.reference_name }}
+          <div class="error-message" id="reference_name_error"></div>
         </div>
         <div class="form-group">
           <label>Contact Number</label>
           {{ form.reference_contact }}
+          <div class="error-message" id="reference_contact_error"></div>
         </div>
       </div>
     </div>
 
+    <!-- Submit -->
     <div style="text-align:center; margin:50px 0 20px;">
-      <button type="submit" class="btn btn-primary" style="padding:16px 60px; font-size:17px;">
+      <button type="submit" id="submitBtn" class="btn btn-primary" style="padding:16px 60px; font-size:17px;">
         Submit Application
       </button>
       <button type="reset" class="btn btn-secondary" style="padding:16px 40px; margin-left:20px;">
@@ -402,75 +544,326 @@
 </div>
 
 <script>
-  // Toggle Work Experience section + auto-create first block
-  document.querySelector('[name="experience_type"]').addEventListener('change', function() {
-    const expSection = document.getElementById('workExperienceSection');
-    const container = document.getElementById('expContainer');
+// Validation functions (same as before)
+function validateTextOnly(input, errorId, fieldName, allowCommaDotHyphen = false) {
+  const value = input.value.trim();
+  const errorDiv = document.getElementById(errorId);
+  let regex = /^[A-Za-z\s]+$/;
+  if (allowCommaDotHyphen) regex = /^[A-Za-z\s,.-]+$/;
 
-    if (this.value === 'experienced') {
+  if (value === '' && input.hasAttribute('required')) {
+    errorDiv.textContent = `${fieldName} is required.`;
+    errorDiv.style.display = 'block';
+    input.classList.add('input-error');
+    return false;
+  } else if (value && !regex.test(value)) {
+    errorDiv.textContent = `${fieldName} can only contain letters, spaces${allowCommaDotHyphen ? ', commas, dots, hyphens' : ''}. No numbers or special characters.`;
+    errorDiv.style.display = 'block';
+    input.classList.add('input-error');
+    return false;
+  } else {
+    errorDiv.style.display = 'none';
+    input.classList.remove('input-error');
+    input.classList.add('input-success');
+    return true;
+  }
+}
+
+function validateAlphanumeric(input, errorId, fieldName) {
+  const value = input.value.trim();
+  const errorDiv = document.getElementById(errorId);
+  const regex = /^[A-Za-z0-9]+$/;
+
+  if (value && !regex.test(value)) {
+    errorDiv.textContent = `${fieldName} can only contain letters and numbers. No special characters.`;
+    errorDiv.style.display = 'block';
+    input.classList.add('input-error');
+    return false;
+  } else {
+    errorDiv.style.display = 'none';
+    input.classList.remove('input-error');
+    input.classList.add('input-success');
+    return true;
+  }
+}
+
+function validateEmail(input, errorId) {
+  const value = input.value.trim();
+  const errorDiv = document.getElementById(errorId);
+  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (value === '' && input.hasAttribute('required')) {
+    errorDiv.textContent = "Email is required.";
+    errorDiv.style.display = 'block';
+    input.classList.add('input-error');
+    return false;
+  } else if (value && !regex.test(value)) {
+    errorDiv.textContent = "Please enter a valid email address.";
+    errorDiv.style.display = 'block';
+    input.classList.add('input-error');
+    return false;
+  } else {
+    errorDiv.style.display = 'none';
+    input.classList.remove('input-error');
+    input.classList.add('input-success');
+    return true;
+  }
+}
+
+function validateNumberOnly(input, errorId, fieldName, minLength = 0, maxLength = Infinity) {
+  const value = input.value.trim();
+  const errorDiv = document.getElementById(errorId);
+  const regex = /^[0-9]+$/;
+
+  if (value === '' && input.hasAttribute('required')) {
+    errorDiv.textContent = `${fieldName} is required.`;
+    errorDiv.style.display = 'block';
+    input.classList.add('input-error');
+    return false;
+  } else if (value && !regex.test(value)) {
+    errorDiv.textContent = `${fieldName} can only contain numbers.`;
+    errorDiv.style.display = 'block';
+    input.classList.add('input-error');
+    return false;
+  } else if (value.length < minLength) {
+    errorDiv.textContent = `${fieldName} must be at least ${minLength} digits.`;
+    errorDiv.style.display = 'block';
+    input.classList.add('input-error');
+    return false;
+  } else if (value.length > maxLength) {
+    errorDiv.textContent = `${fieldName} cannot exceed ${maxLength} digits.`;
+    errorDiv.style.display = 'block';
+    input.classList.add('input-error');
+    return false;
+  } else {
+    errorDiv.style.display = 'none';
+    input.classList.remove('input-error');
+    input.classList.add('input-success');
+    return true;
+  }
+}
+
+function validateFile(input, errorId, maxSizeMB, allowedTypes, typeText) {
+  const file = input.files[0];
+  const errorDiv = document.getElementById(errorId);
+
+  if (file) {
+    const sizeMB = file.size / (1024 * 1024);
+    if (sizeMB > maxSizeMB) {
+      errorDiv.textContent = `File too large. Upload below ${maxSizeMB} MB.`;
+      errorDiv.style.display = 'block';
+      input.classList.add('input-error');
+      return false;
+    }
+    if (!allowedTypes.includes(file.type)) {
+      errorDiv.textContent = `Invalid file type. Only ${typeText} allowed.`;
+      errorDiv.style.display = 'block';
+      input.classList.add('input-error');
+      return false;
+    }
+    errorDiv.style.display = 'none';
+    input.classList.remove('input-error');
+    input.classList.add('input-success');
+    return true;
+  }
+  errorDiv.style.display = 'none';
+  input.classList.remove('input-error');
+  return true;
+}
+
+// Work Experience toggle
+document.addEventListener('DOMContentLoaded', function() {
+  const expType = document.querySelector('[name="experience_type"]');
+  const expSection = document.getElementById('workExperienceSection');
+  const container = document.getElementById('expContainer');
+
+  function toggleExp() {
+    if (expType.value === 'experienced') {
       expSection.style.display = 'block';
-      
-      // If no blocks exist → create the first non-removable block
       if (container.children.length === 0) {
-        const firstBlock = createExperienceBlock(true); // true = first block (no remove button)
-        container.appendChild(firstBlock);
+        addExp();
       }
     } else {
       expSection.style.display = 'none';
-      // Clear everything when switching to Fresher
       container.innerHTML = '';
+    }
+  }
+
+  expType.addEventListener('change', toggleExp);
+  toggleExp();
+});
+
+function addExp() {
+  const container = document.getElementById('expContainer');
+  const block = document.createElement('div');
+  block.className = 'exp-block';
+  block.innerHTML = `
+    <div class="form-row">
+      <div class="form-group">
+        <label>Previous Employer</label>
+        <input name="prev_employer[]" type="text" placeholder="e.g., Google India">
+      </div>
+      <div class="form-group">
+        <label>Designation</label>
+        <input name="prev_designation[]" type="text" placeholder="e.g., Software Engineer">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Duration</label>
+        <input name="prev_duration[]" type="text" placeholder="e.g., Jan 2022 - Dec 2024">
+      </div>
+      <div class="form-group">
+        <label>Email ID</label>
+        <input name="prev_email[]" type="email" placeholder="e.g., hr@company.com">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Experience Certificate</label>
+        <input type="file" name="work_experience_cert[]" accept=".pdf,image/*">
+        <small>(PDF/JPG/PNG, max 5MB)</small>
+      </div>
+    </div>
+    <button type="button" class="remove-block" onclick="this.parentElement.remove()">Remove Experience</button>
+    <hr>
+  `;
+  container.appendChild(block);
+}
+
+// Live validation attachment (same as before)
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('publicBiodataForm');
+
+  // Text-only fields
+  const textFields = [
+    { sel: '[name="first_name"]', err: 'first_name_error', label: 'First Name' },
+    { sel: '[name="middle_name"]', err: 'middle_name_error', label: 'Middle Name' },
+    { sel: '[name="last_name"]', err: 'last_name_error', label: 'Last Name' },
+    { sel: '[name="city"]', err: 'city_error', label: 'City' },
+    { sel: '[name="state"]', err: 'state_error', label: 'State' },
+    { sel: '[name="ssc_school"]', err: 'ssc_school_error', label: 'SSC School' },
+    { sel: '[name="sslc_school"]', err: 'sslc_school_error', label: 'SSLC School' },
+    { sel: '[name="ug_degree"]', err: 'ug_degree_error', label: 'UG Degree' },
+    { sel: '[name="ug_institution"]', err: 'ug_institution_error', label: 'UG Institution' },
+    { sel: '[name="pg_degree"]', err: 'pg_degree_error', label: 'PG Degree' },
+    { sel: '[name="pg_institution"]', err: 'pg_institution_error', label: 'PG Institution' },
+    { sel: '[name="cert_course"]', err: 'cert_course_error', label: 'Certification Course' },
+    { sel: '[name="cert_institution"]', err: 'cert_institution_error', label: 'Certification Institution' },
+    { sel: '[name="bank_name"]', err: 'bank_name_error', label: 'Bank Name' },
+    { sel: '[name="bank_branch"]', err: 'bank_branch_error', label: 'Bank Branch Name' },
+    { sel: '[name="account_name"]', err: 'account_name_error', label: 'Account Name' },
+    { sel: '[name="reference_name"]', err: 'reference_name_error', label: 'Reference Name' },
+  ];
+
+  textFields.forEach(f => {
+    const el = document.querySelector(f.sel);
+    if (el) {
+      el.addEventListener('input', () => validateTextOnly(el, f.err, f.label));
+      el.addEventListener('blur', () => validateTextOnly(el, f.err, f.label));
     }
   });
 
-  function addExp() {
-    const container = document.getElementById('expContainer');
-    const newBlock = createExperienceBlock(false); // false = removable
-    container.appendChild(newBlock);
+  // Alphanumeric fields
+  const alphaNumFields = [
+    { sel: '[name="pan_no"]', err: 'pan_no_error', label: 'PAN Card No' },
+    { sel: '[name="ifsc_code"]', err: 'ifsc_code_error', label: 'IFSC Code' },
+  ];
+
+  alphaNumFields.forEach(f => {
+    const el = document.querySelector(f.sel);
+    if (el) {
+      el.addEventListener('input', () => validateAlphanumeric(el, f.err, f.label));
+      el.addEventListener('blur', () => validateAlphanumeric(el, f.err, f.label));
+    }
+  });
+
+  // Email
+  const personalEmail = document.querySelector('[name="personal_email"]');
+  if (personalEmail) {
+    personalEmail.addEventListener('input', () => validateEmail(personalEmail, 'personal_email_error'));
+    personalEmail.addEventListener('blur', () => validateEmail(personalEmail, 'personal_email_error'));
   }
 
-  function removeExp(btn) {
-    btn.closest('.exp-block').remove();
-  }
+  // Number-only fields
+  const numberFields = [
+    { sel: '[name="contact_number"]', err: 'contact_number_error', label: 'Contact Number', min: 10, max: 10 },
+    { sel: '[name="emergency_contact"]', err: 'emergency_contact_error', label: 'Emergency Contact', min: 0, max: 10 },
+    { sel: '[name="aadhar_no"]', err: 'aadhar_no_error', label: 'Aadhar Number', min: 12, max: 12 },
+    { sel: '[name="postal_code"]', err: 'postal_code_error', label: 'Postal Code', min: 6, max: 6 },
+    { sel: '[name="account_number"]', err: 'account_number_error', label: 'Account Number', min: 9, max: 18 },
+    { sel: '[name="ssc_year"]', err: 'ssc_year_error', label: 'SSC Year', min: 4, max: 4 },
+    { sel: '[name="sslc_year"]', err: 'sslc_year_error', label: 'SSLC Year', min: 4, max: 4 },
+    { sel: '[name="ug_year"]', err: 'ug_year_error', label: 'UG Year', min: 4, max: 4 },
+    { sel: '[name="pg_year"]', err: 'pg_year_error', label: 'PG Year', min: 4, max: 4 },
+    { sel: '[name="cert_year"]', err: 'cert_year_error', label: 'Certification Year', min: 4, max: 4 },
+  ];
 
-  function createExperienceBlock(isFirst) {
-    const div = document.createElement('div');
-    div.className = 'exp-block';
-    div.innerHTML = `
-      <div class="form-row">
-        <div class="form-group">
-          <label>Previous Employer</label>
-          <input name="prev_employer[]" type="text" placeholder="e.g., Google India">
-        </div>
-        <div class="form-group">
-          <label>Designation</label>
-          <input name="prev_designation[]" type="text" placeholder="e.g., Software Engineer">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Duration</label>
-          <input name="prev_duration[]" type="text" placeholder="e.g., Jan 2022 - Dec 2024">
-        </div>
-        <div class="form-group">
-          <label>Email ID</label>
-          <input name="prev_email[]" type="email" placeholder="e.g., hr@company.com">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Experience Certificate</label>
-          <input type="file" name="work_experience_cert[]" accept=".pdf,image/*">
-          <small>(PDF/JPG/PNG, max 5MB)</small>
-        </div>
-      </div>
-      ${isFirst ? '' : '<button type="button" class="remove-block" onclick="removeExp(this)">Remove Experience</button>'}
-      <hr>
-    `;
-    return div;
-  }
+  numberFields.forEach(f => {
+    const el = document.querySelector(f.sel);
+    if (el) {
+      el.addEventListener('input', () => validateNumberOnly(el, f.err, f.label, f.min, f.max));
+      el.addEventListener('blur', () => validateNumberOnly(el, f.err, f.label, f.min, f.max));
+    }
+  });
 
-  // Initial setup
-  document.querySelector('[name="experience_type"]').dispatchEvent(new Event('change'));
+  // File validation
+  const fileFields = [
+    { sel: '[name="photo"]', err: 'photo_error', max: 1, types: ['image/jpeg', 'image/png'], text: 'JPG / PNG' },
+    { sel: '[name="resume"]', err: 'resume_error', max: 5, types: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'], text: 'PDF / DOC / DOCX' },
+    { sel: '[name="aadhar_card"]', err: 'aadhar_card_error', max: 5, types: ['application/pdf', 'image/jpeg', 'image/png'], text: 'PDF / JPG / PNG' },
+    { sel: '[name="pan_card"]', err: 'pan_card_error', max: 5, types: ['application/pdf', 'image/jpeg', 'image/png'], text: 'PDF / JPG / PNG' },
+    { sel: '[name="ssc_marksheet"]', err: 'ssc_marksheet_error', max: 5, types: ['application/pdf', 'image/jpeg', 'image/png'], text: 'PDF / JPG / PNG' },
+    { sel: '[name="sslc_marksheet"]', err: 'sslc_marksheet_error', max: 5, types: ['application/pdf', 'image/jpeg', 'image/png'], text: 'PDF / JPG / PNG' },
+    { sel: '[name="ug_documents"]', err: 'ug_documents_error', max: 5, types: ['application/pdf', 'image/jpeg', 'image/png'], text: 'PDF / JPG / PNG' },
+    { sel: '[name="pg_documents"]', err: 'pg_documents_error', max: 5, types: ['application/pdf', 'image/jpeg', 'image/png'], text: 'PDF / JPG / PNG' },
+    { sel: '[name="cert_document"]', err: 'cert_document_error', max: 5, types: ['application/pdf', 'image/jpeg', 'image/png'], text: 'PDF / JPG / PNG' },
+  ];
+
+  fileFields.forEach(f => {
+    const el = document.querySelector(f.sel);
+    if (el) {
+      el.addEventListener('change', () => validateFile(el, f.err, f.max, f.types, f.text));
+    }
+  });
+
+  // Prevent submit if errors exist
+  form.addEventListener('submit', function(e) {
+    let hasError = false;
+
+    // Text fields
+    textFields.forEach(f => {
+      const el = document.querySelector(f.sel);
+      if (el && !validateTextOnly(el, f.err, f.label)) hasError = true;
+    });
+
+    // Alphanumeric
+    alphaNumFields.forEach(f => {
+      const el = document.querySelector(f.sel);
+      if (el && !validateAlphanumeric(el, f.err, f.label)) hasError = true;
+    });
+
+    // Email
+    if (personalEmail && !validateEmail(personalEmail, 'personal_email_error')) hasError = true;
+
+    // Numbers
+    numberFields.forEach(f => {
+      const el = document.querySelector(f.sel);
+      if (el && !validateNumberOnly(el, f.err, f.label, f.min, f.max)) hasError = true;
+    });
+
+    // Files
+    fileFields.forEach(f => {
+      const el = document.querySelector(f.sel);
+      if (el && !validateFile(el, f.err, f.max, f.types, f.text)) hasError = true;
+    });
+
+    if (hasError) {
+      e.preventDefault();
+      alert('Please fix all errors before submitting.');
+    }
+  });
+});
 </script>
 
 </body>

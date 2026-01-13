@@ -2,188 +2,302 @@
 
 {% block page_title %}Employee Biodata{% endblock %}
 
+{% block extra_head %}
+<!-- SweetAlert2 for nice popup -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+{% endblock %}
+
 {% block content %}
 <div class="content-area">
   <div class="content-card">
+
     <div class="card-header">
-      <h2>All Employees</h2>
+      <h2>Employee Biodata Management</h2>
       <div class="header-row">
-        <p class="card-subtitle">View and manage all employee information</p>
-        <a href="{% url 'employee_app:public_biodata_form' %}" class="btn btn-primary public-btn">Public Bio Data Form</a>
+        <p class="card-subtitle">View approved employees & send biodata invitations</p>
+        <a href="{% url 'employee_app:public_biodata_form' %}" class="btn btn-primary">Public Bio Data Form</a>
       </div>
     </div>
 
-    <!-- Search and Filters -->
-    <div class="list-controls">
-     
-    <input type="text" id="searchEmployees" value="{{ current_search }}" 
-           placeholder="Search by name, email, or ID..." class="search-input" 
-           onkeyup="if(event.key === 'Enter') filterByDepartment();">
+    <!-- Invitation Form (only super_admin & admin) -->
+   
+    <div class="invitation-form-section card mb-5 p-4 bg-light rounded shadow-sm">
+      <h3 class="section-title mb-4">Send Bio Data Form Invitation</h3>
 
-    <select id="departmentFilter" class="role-filter" onchange="filterByDepartment()">
-        <option value="" {% if not current_department %}selected{% endif %}>All Departments</option>
-        <option value="Software Development" {% if current_department == 'Software Development' %}selected{% endif %}>Software Development</option>
-        <option value="HR" {% if current_department == 'HR' %}selected{% endif %}>HR</option>
-        <option value="Finance" {% if current_department == 'Finance' %}selected{% endif %}>Finance</option>
-        <option value="Operations" {% if current_department == 'Operations' %}selected{% endif %}>Operations</option>
-        <option value="Training & Development" {% if current_department == 'Training & Development' %}selected{% endif %}>Training & Development</option>
-    </select>
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% else %}alert-warning{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
 
+      <form method="POST" action="{% url 'employee_app:send_biodata_invitation' %}" id="invitationForm">
+        {% csrf_token %}
+        <div class="form-row">
+          <div class="form-group">
+            <label>Name <span class="text-danger">*</span></label>
+            <input type="text" name="name" required class="form-control" placeholder="Full Name">
+          </div>
+          <div class="form-group">
+            <label>Email <span class="text-danger">*</span></label>
+            <input type="email" name="email" required class="form-control" placeholder="email@example.com">
+            <div class="error-message" id="email_error"></div>
+          </div>
+          <div class="form-group">
+            <label>Phone Number</label>
+            <input type="text" name="phone" class="form-control" placeholder="9876543210">
+          </div>
+          <div class="form-group align-self-end">
+            <button type="submit" class="btn btn-success mt-4 px-5">Send Invitation</button>
+          </div>
+        </div>
+      </form>
+    </div>
+ 
 
-      <a href="{% url 'employee_app:pending_requests' %}" class="btn btn-primary" style="text-decoration: none;">View Requests</a>
+    <!-- Employees Table (unchanged - your original code) -->
+    <div class="mb-5">
+      <h3 class="section-title mb-3">Approved Employees</h3>
+
+      <div class="list-controls mb-4">
+        <input type="text" id="searchEmployees" value="{{ current_search }}" 
+               placeholder="Search by name, email, or ID..." class="search-input" 
+               onkeyup="if(event.key === 'Enter') filterByDepartment();">
+
+        <select id="departmentFilter" class="role-filter" onchange="filterByDepartment()">
+          <option value="" {% if not current_department %}selected{% endif %}>All Departments</option>
+          <option value="Software Development" {% if current_department == 'Software Development' %}selected{% endif %}>Software Development</option>
+          <option value="HR" {% if current_department == 'HR' %}selected{% endif %}>HR</option>
+          <option value="Finance" {% if current_department == 'Finance' %}selected{% endif %}>Finance</option>
+          <option value="Operations" {% if current_department == 'Operations' %}selected{% endif %}>Operations</option>
+          <option value="Training & Development" {% if current_department == 'Training & Development' %}selected{% endif %}>Training & Development</option>
+        </select>
+
+        <a href="{% url 'employee_app:pending_requests' %}" class="btn btn-primary">View Pending Requests</a>
+      </div>
+
+      <div class="table-container">
+        <div class="table-wrapper">
+          <table class="employees-biodata-table">
+            <thead>
+              <tr>
+                <th style="width: 30px;">S.No</th>
+                <th>Employee Name</th>
+                <th>Employee ID</th>
+                <th>Email</th>
+                <th>Department</th>
+                <th>Position</th>
+                <th>Joining Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="employeesTableBody">
+              {% for employee in employees %}
+              <tr data-employee-name="{{ employee.first_name }} {{ employee.middle_name|default:'' }} {{ employee.last_name }}" 
+                  data-employee-id="{{ employee.employee_id|default:'' }}"
+                  data-department="{{ employee.department|default:'' }}">
+                <td>{{ forloop.counter }}</td>
+                <td>
+                  <div class="user-cell">
+                    <div class="user-avatar">
+                      {{ employee.first_name|slice:":1" }}{{ employee.last_name|slice:":1" | upper }}
+                    </div>
+                    <span>{{ employee.first_name }} {{ employee.middle_name|default:'' }} {{ employee.last_name }}</span>
+                  </div>
+                </td>
+                <td>{{ employee.employee_id|default:"Not Assigned" }}</td>
+                <td>{{ employee.official_email|default:employee.personal_email }}</td>
+                <td>{{ employee.department|default:"-" }}</td>
+                <td>{{ employee.designation|default:"-" }}</td>
+                <td>{{ employee.doj|date:"M d, Y"|default:"-" }}</td>
+                <td>
+                  <a href="{% url 'employee_app:view_biodata' employee.pk %}">
+                    <button class="action-icon-btn" title="View">👁️</button>
+                  </a>
+                  <a href="{% url 'employee_app:edit_biodata' employee.pk %}">
+                    <button class="action-icon-btn" title="Edit">✏️</button>
+                  </a>
+                  <a href="{% url 'employee_app:delete_approved_employee' employee.pk %}">
+                    <button class="action-icon-btn" title="Delete">🗑️</button>
+                  </a>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="8" class="text-center py-5 text-muted">No approved employees yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-pagination mt-3">
+          <button class="pagination-btn" onclick="previousPageBiodata()">← Previous</button>
+          <span class="pagination-info"><span class="current-page">1</span> / <span class="total-pages">1</span></span>
+          <button class="pagination-btn" onclick="nextPageBiodata()">Next →</button>
+        </div>
+      </div>
     </div>
 
-    <!-- Employees Table -->
+    <!-- Invitations Table -->
     <div class="table-container">
+      <h3 class="section-title mb-3">Bio Data Invitations</h3>
       <div class="table-wrapper">
         <table class="employees-biodata-table">
           <thead>
             <tr>
-              <th id="serial-no" style="width: 30px;">S.No</th>
-              <th>Employee Name</th>
-              <th>Employee ID</th>
+              <th style="width: 30px;">S.No</th>
+              <th>Name</th>
               <th>Email</th>
-              <th>Department</th>
-              <th>Position</th>
-              <th>Joining Date</th>
-              <th>Actions</th>
+              <th>Phone</th>
+              <th>Sent At</th>
+              <th>Status</th>
+              <th>Submitted At</th>
             </tr>
           </thead>
-          <tbody id="employeesTableBody">
-            {% for employee in employees %}
-            <tr data-employee-name="{{ employee.first_name }} {{ employee.middle_name|default:'' }} {{ employee.last_name }}" 
-                data-employee-id="{{ employee.employee_id|default:'' }}"
-                data-department="{{ employee.department|default:'' }}">
+          <tbody id="invitationsTableBody">
+            {% for invite in invitations %}
+            <tr>
               <td>{{ forloop.counter }}</td>
+              <td>{{ invite.name }}</td>
+              <td>{{ invite.email }}</td>
+              <td>{{ invite.phone|default:"-" }}</td>
+              <td>{{ invite.sent_at|date:"d M Y, H:i" }}</td>
               <td>
-                <div class="user-cell">
-                  <div class="user-avatar">
-                    {{ employee.first_name|slice:":1" }}{{ employee.last_name|slice:":1" | upper }}
-                  </div>
-                  <span>
-                    {{ employee.first_name }} 
-                    {{ employee.middle_name|default:'' }} 
-                    {{ employee.last_name }}
-                  </span>
-                </div>
+                {% if invite.submitted %}
+                  <span class="status-badge completed">Submitted</span>
+                {% elif invite.sent_at %}
+                  <span class="status-badge pending">Sent</span>
+                {% else %}
+                  <span class="status-badge danger">Pending</span>
+                {% endif %}
               </td>
-              <td>{{ employee.employee_id|default:"Not Assigned" }}</td>
-              <td>{{ employee.official_email|default:employee.personal_email }}</td>
-              <td>{{ employee.department|default:"-" }}</td>
-              <td>{{ employee.designation|default:"-" }}</td>
-              <td>{{ employee.doj|date:"M d, Y"|default:"-" }}</td>
-              <td>
-                <a href="{% url 'employee_app:view_biodata' employee.pk %}">
-                  <button class="action-icon-btn" title="View">👁️</button>
-                </a>
-                <a href="{% url 'employee_app:edit_biodata' employee.pk %}">
-                  <button class="action-icon-btn" title="Edit">✏️</button>
-                </a>
-                <a href="{% url 'employee_app:delete_approved_employee' employee.pk %}">
-                  <button class="action-icon-btn" title="Delete">🗑️</button>
-                </a>
-              </td>
+              <td>{{ invite.submitted_at|date:"d M Y, H:i"|default:"-" }}</td>
             </tr>
             {% empty %}
-            <tr>
-              <td colspan="8" style="text-align:center; padding:40px; color:#666;">
-                No approved employees yet.
-              </td>
-            </tr>
+            <tr><td colspan="7" class="text-center py-5 text-muted">No invitations sent yet.</td></tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
+
+      <div class="table-pagination mt-3">
+        <button class="pagination-btn" onclick="previousPageInvitations()">← Previous</button>
+        <span class="pagination-info"><span class="current-invite-page">1</span> / <span class="total-invite-pages">1</span></span>
+        <button class="pagination-btn" onclick="nextPageInvitations()">Next →</button>
+      </div>
     </div>
 
-    <!-- Pagination -->
-    <div class="table-pagination">
-      <button class="pagination-btn" onclick="previousPageBiodata()">← Previous</button>
-      <span class="pagination-info"><span class="current-page">1</span> / <span class="total-pages">1</span></span>
-      <button class="pagination-btn" onclick="nextPageBiodata()">Next →</button>
+    <!-- Export Buttons -->
+    <div class="export-buttons mt-5 text-right">
+      <a href="{% url 'employee_app:export_biodata_excel' %}?search={{ current_search }}&department={{ current_department }}">
+        <button class="btn btn-excel px-4 py-2">📄 Export Employees Excel</button>
+      </a>
+      <button class="btn btn-pdf px-4 py-2">📕 Export PDF</button>
     </div>
 
-    <!-- Export Buttons At Bottom -->
-    <div class="export-buttons" style="margin-top: 25px; text-align: right;">
-     <a href="{% url 'employee_app:export_biodata_excel' %}?search={{ current_search }}&department={{ current_department }}"><button class="btn btn-excel" style="padding: 10px 18px; background-color: #2e7d32; color: white; border: none; border-radius: 6px; cursor: pointer; margin-right: 10px; margin-bottom:5px;">
-        📄 Export Excel
-      </button></a>
-      <button class="btn btn-pdf" style="padding: 10px 18px; background-color: #c62828; color: white; border: none; border-radius: 6px; cursor: pointer;">
-        📕 Export PDF
-      </button>
-    </div>
   </div>
 </div>
 
 <script>
-  // ============================================================
-  // UI INTERACTION ONLY - NO BACKEND LOGIC
-  // ============================================================
+// Employees Pagination & Filter (your original)
+const employeePageData = { currentPage: 1, perPage: 20 };
 
-  const pageData = {
-    currentPage: 1,
-    perPage: 20
-  };
-
- 
-  
 function filterByDepartment() {
-    const search = document.getElementById('searchEmployees').value.trim();
-    const dept = document.getElementById('departmentFilter').value;
-    
-    let url = new URL(window.location);
-    if (search) url.searchParams.set('search', search);
-    else url.searchParams.delete('search');
-    if (dept) url.searchParams.set('department', dept);
-    else url.searchParams.delete('department');
-    
-    window.location.href = url.toString();
+  const search = document.getElementById('searchEmployees').value.trim();
+  const dept = document.getElementById('departmentFilter').value;
+  
+  let url = new URL(window.location);
+  if (search) url.searchParams.set('search', search);
+  else url.searchParams.delete('search');
+  if (dept) url.searchParams.set('department', dept);
+  else url.searchParams.delete('department');
+  
+  window.location.href = url.toString();
 }
 
-// Optional: Search on Enter key
 document.getElementById('searchEmployees').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        filterByDepartment();
-    }
+  if (e.key === 'Enter') filterByDepartment();
 });
 
-  // Update pagination (UI only)
-  function updatePaginationBiodata() {
-    const visibleRows = Array.from(document.querySelectorAll('#employeesTableBody tr'))
-      .filter(row => row.style.display !== 'none');
-    const totalPages = Math.ceil(visibleRows.length / pageData.perPage);
-    const start = (pageData.currentPage - 1) * pageData.perPage;
-    const end = start + pageData.perPage;
+function updatePaginationEmployees() {
+  const rows = Array.from(document.querySelectorAll('#employeesTableBody tr'))
+    .filter(r => r.style.display !== 'none');
+  const total = Math.ceil(rows.length / employeePageData.perPage);
+  const start = (employeePageData.currentPage - 1) * employeePageData.perPage;
+  const end = start + employeePageData.perPage;
 
-    visibleRows.forEach((row, index) => {
-      row.style.display = (index >= start && index < end) ? '' : 'none';
-    });
+  rows.forEach((r, i) => r.style.display = (i >= start && i < end) ? '' : 'none');
 
-    document.querySelector('.current-page').textContent = pageData.currentPage;
-    document.querySelector('.total-pages').textContent = totalPages || 1;
+  document.querySelector('.current-page').textContent = employeePageData.currentPage;
+  document.querySelector('.total-pages').textContent = total || 1;
+}
+
+function nextPageBiodata() {
+  const rows = Array.from(document.querySelectorAll('#employeesTableBody tr')).filter(r => r.style.display !== 'none');
+  if (employeePageData.currentPage < Math.ceil(rows.length / employeePageData.perPage)) {
+    employeePageData.currentPage++;
+    updatePaginationEmployees();
   }
+}
 
-  function nextPageBiodata() {
-    const visibleRows = Array.from(document.querySelectorAll('#employeesTableBody tr'))
-      .filter(row => row.style.display !== 'none');
-    const totalPages = Math.ceil(visibleRows.length / pageData.perPage);
-    if (pageData.currentPage < totalPages) {
-      pageData.currentPage++;
-      updatePaginationBiodata();
-    }
+function previousPageBiodata() {
+  if (employeePageData.currentPage > 1) {
+    employeePageData.currentPage--;
+    updatePaginationEmployees();
   }
+}
 
-  function previousPageBiodata() {
-    if (pageData.currentPage > 1) {
-      pageData.currentPage--;
-      updatePaginationBiodata();
-    }
+// Invitations Pagination
+const invitePageData = { currentPage: 1, perPage: 10 };
+
+function updatePaginationInvitations() {
+  const rows = Array.from(document.querySelectorAll('#invitationsTableBody tr'))
+    .filter(r => r.style.display !== 'none');
+  const total = Math.ceil(rows.length / invitePageData.perPage);
+  const start = (invitePageData.currentPage - 1) * invitePageData.perPage;
+  const end = start + invitePageData.perPage;
+
+  rows.forEach((r, i) => r.style.display = (i >= start && i < end) ? '' : 'none');
+
+  document.querySelector('.current-invite-page').textContent = invitePageData.currentPage;
+  document.querySelector('.total-invite-pages').textContent = total || 1;
+}
+
+function nextPageInvitations() {
+  const rows = Array.from(document.querySelectorAll('#invitationsTableBody tr')).filter(r => r.style.display !== 'none');
+  if (invitePageData.currentPage < Math.ceil(rows.length / invitePageData.perPage)) {
+    invitePageData.currentPage++;
+    updatePaginationInvitations();
   }
+}
 
-  // Initialize on page load
-  document.addEventListener('DOMContentLoaded', function () {
-    updatePaginationBiodata();
-  });
+function previousPageInvitations() {
+  if (invitePageData.currentPage > 1) {
+    invitePageData.currentPage--;
+    updatePaginationInvitations();
+  }
+}
+
+// Show success popup if invitation sent
+document.addEventListener('DOMContentLoaded', function() {
+  updatePaginationEmployees();
+  updatePaginationInvitations();
+
+  {% if messages %}
+    {% for message in messages %}
+      {% if 'success' in message.tags and 'Invitation sent successfully' in message %}
+        Swal.fire({
+          title: 'Success!',
+          text: "{{ message }}",
+          icon: 'success',
+          confirmButtonText: 'OK',
+          timer: 3000
+        });
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+});
 </script>
 
 {% endblock %}

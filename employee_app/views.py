@@ -537,13 +537,109 @@ def biodata_list(request):
     # Apply department filter
     if department:
         employees = employees.filter(department=department)
+    
+    invitations = BiodataInvitation.objects.all().order_by('-sent_at')
 
     context = {
         'employees': employees,
         'current_search': search,           # to keep input filled
         'current_department': department,   # to keep dropdown selected
+        'invitations': invitations,
     }
     return render(request, 'employee_app/biodata.html', context)
+
+from django.core.mail import send_mail
+from django.conf import settings
+from .models import BiodataInvitation
+from django.contrib import messages
+from django.shortcuts import redirect
+
+from django.core.mail import send_mail
+from django.conf import settings
+from django.contrib import messages
+from django.shortcuts import redirect
+from django.db.models import Q
+from django.http import HttpResponseForbidden
+from .models import BiodataInvitation, BioDataRequest
+from employee_app.models import CustomUser  # Import your User model (adjust path if needed)
+
+@login_required
+def send_biodata_invitation(request):
+    if request.user.role not in ['super_admin', 'admin']:
+        return HttpResponseForbidden("Only admins can send invitations.")
+
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        email = request.POST.get('email', '').strip()
+        phone = request.POST.get('phone', '').strip()
+
+        if not name or not email:
+            messages.error(request, "Name and Email are required.")
+            return redirect('employee_app:biodata_list')
+
+        # 1. Check if email already submitted biodata
+        if BioDataRequest.objects.filter(
+            Q(personal_email=email) | Q(official_email=email)
+        ).exists():
+            messages.error(request, f"This email ({email}) has already submitted a bio data form.")
+            return redirect('employee_app:biodata_list')
+
+        # 2. Check if email is already registered as a user account
+        if CustomUser.objects.filter(email=email).exists():
+            messages.error(request, f"This email ({email}) is already registered as a user account.")
+            return redirect('employee_app:biodata_list')
+
+        # 3. Check if already invited
+        if BiodataInvitation.objects.filter(email=email).exists():
+            messages.warning(request, f"Invitation already sent to {email}.")
+            return redirect('employee_app:biodata_list')
+
+        # Create invitation record
+        invitation = BiodataInvitation.objects.create(
+            name=name,
+            email=email,
+            phone=phone
+        )
+
+        # Public link
+        public_link = request.build_absolute_uri(reverse('employee_app:public_biodata_form'))
+
+        # Email content
+        subject = "Invitation to Fill Employee Bio Data Form - STACKLY"
+        message = f"""
+Dear {name},
+
+You are invited to fill your employee bio data form.
+
+Please click the link below to complete the form:
+{public_link}
+
+Instructions:
+1. Fill all required fields marked with *
+2. Upload clear scanned copies of documents (photo, resume, marksheets, etc.)
+3. For experience details (if applicable), add previous employers
+4. Submit only when all mandatory fields are complete
+
+If you have any questions, contact HR.
+
+Thank you!
+STACKLY HR Team
+        """
+
+        try:
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [email],
+                fail_silently=False,
+            )
+            messages.success(request, f"Invitation sent successfully to {email}!")
+        except Exception as e:
+            messages.error(request, f"Failed to send email: {str(e)}")
+            invitation.delete()  # rollback if email fails
+
+    return redirect('employee_app:biodata_list')
 
 @login_required
 def delete_pending_request(request, pk):
