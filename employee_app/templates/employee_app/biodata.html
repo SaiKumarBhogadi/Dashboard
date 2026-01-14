@@ -2,81 +2,116 @@
 
 {% block page_title %}Employee Biodata{% endblock %}
 
-{% block extra_head %}
+
+
 <!-- SweetAlert2 for nice popup -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-{% endblock %}
+
 
 {% block content %}
+
+
+
 <div class="content-area">
   <div class="content-card">
 
     <div class="card-header">
-      <h2>Employee Biodata Management</h2>
+      
+      <h2>  Employee Biodata Management</h2>
       <div class="header-row">
         <p class="card-subtitle">View approved employees & send biodata invitations</p>
         <a href="{% url 'employee_app:public_biodata_form' %}" class="btn btn-primary">Public Bio Data Form</a>
       </div>
-    </div>
-
-    <!-- Invitation Form (only super_admin & admin) -->
-   
-    <div class="invitation-form-section card mb-5 p-4 bg-light rounded shadow-sm">
-      <h3 class="section-title mb-4">Send Bio Data Form Invitation</h3>
 
       {% if messages %}
         {% for message in messages %}
-          <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% else %}alert-warning{% endif %}">
+          <div class="alert auto-hide-alert
+              {% if message.tags == 'success' %}alert-success
+              {% elif message.tags == 'error' %}alert-danger
+              {% else %}alert-warning{% endif %}">
             {{ message }}
           </div>
         {% endfor %}
       {% endif %}
 
-      <form method="POST" action="{% url 'employee_app:send_biodata_invitation' %}" id="invitationForm">
-        {% csrf_token %}
-        <div class="form-row">
-          <div class="form-group">
-            <label>Name <span class="text-danger">*</span></label>
-            <input type="text" name="name" required class="form-control" placeholder="Full Name">
-          </div>
-          <div class="form-group">
-            <label>Email <span class="text-danger">*</span></label>
-            <input type="email" name="email" required class="form-control" placeholder="email@example.com">
-            <div class="error-message" id="email_error"></div>
-          </div>
-          <div class="form-group">
-            <label>Phone Number</label>
-            <input type="text" name="phone" class="form-control" placeholder="9876543210">
-          </div>
-          <div class="form-group align-self-end">
-            <button type="submit" class="btn btn-success mt-4 px-5">Send Invitation</button>
-          </div>
-        </div>
-      </form>
     </div>
+
+    <!-- Invitation Form  -->
+   
+      <div class="invitation-form-section">
+        <h3 class="section-title">Send Bio Data Form Invitation</h3>
+
+        
+
+        <form method="POST" action="{% url 'employee_app:send_biodata_invitation' %}" id="invitationForm">
+          {% csrf_token %}
+
+          <div class="invitation-form-grid">
+            <div class="form-group">
+              <label>Name <span class="required">*</span></label>
+              <input type="text" name="name" required class="form-control" placeholder="Full Name">
+            </div>
+
+            <div class="form-group">
+              <label>Email <span class="required">*</span></label>
+              <input type="email" name="email" required class="form-control" placeholder="email@example.com">
+              <div class="error-message" id="email_error"></div>
+            </div>
+
+            <div class="form-group">
+              <label>Phone Number</label>
+              <input type="text" name="phone" class="form-control" placeholder="9876543210">
+            </div>
+
+            <div class="form-group submit-group">
+              <button type="submit" class="btn btn-danger">
+                📩 Send Invitation
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
  
 
-    <!-- Employees Table (unchanged - your original code) -->
+    <!-- Employees Table -->
     <div class="mb-5">
       <h3 class="section-title mb-3">Approved Employees</h3>
 
       <div class="list-controls mb-4">
-        <input type="text" id="searchEmployees" value="{{ current_search }}" 
-               placeholder="Search by name, email, or ID..." class="search-input" 
-               onkeyup="if(event.key === 'Enter') filterByDepartment();">
+        <div class="filters-left">
+          <input type="text" id="searchEmployees" value="{{ current_search }}"
+            placeholder="Search by name, email, or ID..."
+            class="search-input"
+            onkeyup="if(event.key === 'Enter') filterByDepartment();">
 
-        <select id="departmentFilter" class="role-filter" onchange="filterByDepartment()">
-          <option value="" {% if not current_department %}selected{% endif %}>All Departments</option>
-          <option value="Software Development" {% if current_department == 'Software Development' %}selected{% endif %}>Software Development</option>
-          <option value="HR" {% if current_department == 'HR' %}selected{% endif %}>HR</option>
-          <option value="Finance" {% if current_department == 'Finance' %}selected{% endif %}>Finance</option>
-          <option value="Operations" {% if current_department == 'Operations' %}selected{% endif %}>Operations</option>
-          <option value="Training & Development" {% if current_department == 'Training & Development' %}selected{% endif %}>Training & Development</option>
-        </select>
+          <select id="departmentFilter" class="role-filter" onchange="filterByDepartment()">
+            <option value="">All Departments</option>
+            <option value="Software Development">Software Development</option>
+            <option value="HR">HR</option>
+            <option value="Finance">Finance</option>
+            <option value="Operations">Operations</option>
+            <option value="Training & Development">Training & Development</option>
+          </select>
+        </div>
 
-        <a href="{% url 'employee_app:pending_requests' %}" class="btn btn-primary">View Pending Requests</a>
+        <div class="filters-right">
+          <a href="{% url 'employee_app:pending_requests' %}" class="btn btn-primary">
+            Pending Requests
+          </a>
+
+          <a href="{% url 'employee_app:export_biodata_excel' %}?search={{ current_search }}&department={{ current_department }}"
+            class="btn btn-excel">
+            📄 Export Excel
+          </a>
+
+          <button class="btn btn-pdf">
+            📕 Export PDF
+          </button>
+        </div>
       </div>
+
 
       <div class="table-container">
         <div class="table-wrapper">
@@ -153,6 +188,7 @@
               <th>Sent At</th>
               <th>Status</th>
               <th>Submitted At</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody id="invitationsTableBody">
@@ -173,6 +209,15 @@
                 {% endif %}
               </td>
               <td>{{ invite.submitted_at|date:"d M Y, H:i"|default:"-" }}</td>
+              <td>
+                <form method="POST" action="{% url 'employee_app:delete_biodata_invitation' invite.id %}" style="display:inline;">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-danger" 
+                          onclick="return confirm('Are you sure you want to delete this invitation for {{ invite.email }}?');">
+                    <i class="fas fa-trash-alt"></i> 
+                  </button>
+                </form>
+              </td>
             </tr>
             {% empty %}
             <tr><td colspan="7" class="text-center py-5 text-muted">No invitations sent yet.</td></tr>
@@ -188,13 +233,8 @@
       </div>
     </div>
 
-    <!-- Export Buttons -->
-    <div class="export-buttons mt-5 text-right">
-      <a href="{% url 'employee_app:export_biodata_excel' %}?search={{ current_search }}&department={{ current_department }}">
-        <button class="btn btn-excel px-4 py-2">📄 Export Employees Excel</button>
-      </a>
-      <button class="btn btn-pdf px-4 py-2">📕 Export PDF</button>
-    </div>
+   
+    
 
   </div>
 </div>
@@ -298,6 +338,22 @@ document.addEventListener('DOMContentLoaded', function() {
     {% endfor %}
   {% endif %}
 });
+
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const alerts = document.querySelectorAll(".auto-hide-alert");
+
+    alerts.forEach(alert => {
+      setTimeout(() => {
+        alert.classList.add("hide");
+
+        setTimeout(() => {
+          alert.remove();
+        }, 500); // wait for fade animation
+      }, 5000); // 5 seconds
+    });
+  });
+
 </script>
 
 {% endblock %}

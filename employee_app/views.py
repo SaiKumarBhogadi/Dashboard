@@ -355,10 +355,34 @@ from employee_app.utils import has_permission
 from django.core.mail import send_mail
 from django.conf import settings
 
+from django.shortcuts import render
+from django.contrib import messages
+from datetime import datetime
+from django.db.models import Q
+from .forms import BioDataForm
+from .models import BiodataInvitation
+from employee_app.models import CustomUser  # adjust import if needed
+from employee_app.utils import create_notification  # assuming this exists
+from django.urls import reverse
+
+from django.shortcuts import render
+from django.contrib import messages
+from datetime import datetime
+from django.db.models import Q
+from .forms import BioDataForm
+from .models import BiodataInvitation
+from employee_app.models import CustomUser  # adjust if needed
+from employee_app.utils import create_notification  # adjust if needed
+from django.urls import reverse
+
 def public_biodata_form(request):
+    form = BioDataForm()  # default empty form
+
     if request.method == 'POST':
-        form = BioDataForm(request.POST, request.FILES)
+        form = BioDataForm(request.POST, request.FILES)  # bind data + files
+
         if form.is_valid():
+            # Your existing work experience saving logic
             work_exp = []
             employers = request.POST.getlist('prev_employer[]')
             designations = request.POST.getlist('prev_designation[]')
@@ -382,8 +406,6 @@ def public_biodata_form(request):
                             f'biodata/certs/{cert_file.name}',
                             cert_file
                         )
-
-                        # ✅ ONLY FIX IS HERE
                         exp['certificate_path'] = default_storage.url(path)
 
                     work_exp.append(exp)
@@ -392,7 +414,17 @@ def public_biodata_form(request):
             bio.work_experience = work_exp
             bio.save()
 
-            # Notify admin and super_admin about new submission
+            # Track invitation submission
+            submitted_email = bio.personal_email
+            invitation = BiodataInvitation.objects.filter(email=submitted_email).first()
+
+            if invitation:
+                invitation.submitted = True
+                invitation.submitted_at = datetime.now()
+                invitation.bio_data_request = bio
+                invitation.save()
+
+            # Notify admins
             for user in CustomUser.objects.filter(role__in=['admin', 'super_admin'], is_active=True):
                 link = reverse('employee_app:review_biodata_detail', args=[bio.pk])
                 create_notification(
@@ -407,16 +439,23 @@ def public_biodata_form(request):
                 request,
                 'Bio data submitted successfully! Awaiting HR review.'
             )
-            return redirect('employee_app:public_biodata_form')
+            return render(request, 'employee_app/public_biodata_thank_you.html')
+
         else:
+            # Form is invalid → show field errors + general message
             messages.error(request, 'Please correct the errors below.')
-    else:
-        form = BioDataForm()
+
+    # Always pass form (bound or unbound) + years
+    current_year = datetime.now().year
+    years = list(range(current_year, 1949, -1))  # 1950 to current
 
     return render(
         request,
         'employee_app/public_biodata_form.html',
-        {'form': form}
+        {
+            'form': form,
+            'years': years,
+        }
     )
 
 
@@ -638,6 +677,27 @@ STACKLY HR Team
         except Exception as e:
             messages.error(request, f"Failed to send email: {str(e)}")
             invitation.delete()  # rollback if email fails
+
+    return redirect('employee_app:biodata_list')
+
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from .models import BiodataInvitation
+
+@login_required
+def delete_biodata_invitation(request, invitation_id):
+    if request.user.role not in ['super_admin', 'admin']:
+        messages.error(request, "You do not have permission to delete invitations.")
+        return redirect('employee_app:biodata_list')
+
+    invitation = get_object_or_404(BiodataInvitation, id=invitation_id)
+
+    if request.method == 'POST':
+        invitation.delete()
+        messages.success(request, f"Invitation for {invitation.email} has been deleted successfully.")
+    else:
+        messages.warning(request, "Invalid request method.")
 
     return redirect('employee_app:biodata_list')
 

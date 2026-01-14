@@ -75,3 +75,19 @@ setTimeout(() => {
   }, 3000); // 3 seconds
 
 
+
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const alerts = document.querySelectorAll(".auto-hide-alert");
+
+    alerts.forEach(alert => {
+      setTimeout(() => {
+        alert.classList.add("hide");
+
+        setTimeout(() => {
+          alert.remove();
+        }, 500); // wait for fade animation
+      }, 5000); // 5 seconds
+    });
+  });
+

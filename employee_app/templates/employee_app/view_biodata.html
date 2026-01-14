@@ -6,7 +6,7 @@
 <div class="content-area">
   <div class="content-card" style="max-width:1100px;">
     <div class="card-header">
-      <h2>{{ bio.first_name }} {{ bio.middle_name|default:'' }} {{ bio.last_name }}</h2>
+      <h2><a href={% url 'employee_app:biodata_list' %} class='back-link'> ⏪ </a>{{ bio.first_name }} {{ bio.middle_name|default:'' }} {{ bio.last_name }}</h2>
       <p class="card-subtitle">
         Employee ID: {{ bio.employee_id|default:"Not assigned" }} • 
         Official Email: {{ bio.official_email|default:"-" }} • 

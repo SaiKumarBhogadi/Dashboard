@@ -55,6 +55,7 @@ urlpatterns = [
     path('biodata/delete-pending/<int:pk>/', views.delete_pending_request, name='delete_pending_request'),
     path('biodata/delete-approved/<int:pk>/', views.delete_approved_employee, name='delete_approved_employee'),
     path('biodata/send-invitation/', views.send_biodata_invitation, name='send_biodata_invitation'),
+    path('biodata/invitation/delete/<int:invitation_id>/', views.delete_biodata_invitation, name='delete_biodata_invitation'),
 
 
     # Admin/Trainer/Scrum Dashboard (full management view)

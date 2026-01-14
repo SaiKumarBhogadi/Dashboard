@@ -8,8 +8,19 @@
 <div class="content-area">
   <div class="content-card">
     <div class="card-header">
-      <h2>Public Bio Data Submissions</h2>
+      <h2> <a href={% url 'employee_app:biodata_list' %} class='back-link'> ⏪ </a>Public Bio Data Submissions</h2>
+
       <p class="card-subtitle">Review and approve/reject employee applications submitted via public form</p>
+      {% if messages %}
+          {% for message in messages %}
+            <div class="alert auto-hide-alert
+                {% if message.tags == 'success' %}alert-success
+                {% elif message.tags == 'error' %}alert-danger
+                {% else %}alert-warning{% endif %}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
     </div>
 
     <div class="list-controls">
@@ -105,6 +116,20 @@
       row.style.display = (status === '' || rowStatus === status) ? '' : 'none';
     });
   }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const alerts = document.querySelectorAll(".auto-hide-alert");
+
+    alerts.forEach(alert => {
+      setTimeout(() => {
+        alert.classList.add("hide");
+
+        setTimeout(() => {
+          alert.remove();
+        }, 500); // wait for fade animation
+      }, 5000); // 5 seconds
+    });
+  });
 </script>
 
 {% endblock %}

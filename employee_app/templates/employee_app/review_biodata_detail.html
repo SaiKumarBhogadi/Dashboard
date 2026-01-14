@@ -6,7 +6,7 @@
 <div class="content-area">
   <div class="content-card" style="max-width:1100px;">
     <div class="card-header">
-      <h2>{{ bio.first_name }} {{ bio.middle_name|default:'' }} {{ bio.last_name }}</h2>
+      <h2><a href={% url 'employee_app:pending_requests' %} class='back-link'> ⏪ </a>{{ bio.first_name }} {{ bio.middle_name|default:'' }} {{ bio.last_name }}</h2>
       <p class="card-subtitle">
         Submitted: {{ bio.created_at|date:"d M Y" }} • ID: #{{ bio.id }} • 
         <span class="status-badge {{ bio.status|lower }}">{{ bio.get_status_display }}</span>
@@ -220,7 +220,7 @@
         </button>
 
         <!-- Hidden Save button (shown after Approve click) -->
-        <button type="submit" name="action" value="approve" id="saveApproveBtn" class="btn btn-success" style="display:none; padding:14px 40px;font-size:16px;">
+        <button type="submit" name="action" value="approve" id="saveApproveBtn" class="btn btn-success" style="display:none; padding:14px 40px;font-size:16px;background-color:green;">
           Save & Approve Employee
         </button>
 
